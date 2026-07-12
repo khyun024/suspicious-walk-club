@@ -1,0 +1,436 @@
+/* 수상한 산책클럽 — 카메라 (포스터 톤) */
+:root {
+  --bg:        #F2E4CC;
+  --bg-paper:  #EBD9BB;
+  --ink:       #14224F;
+  --mint:      #99CECF;
+  --accent:    #FF8C57;
+  --accent-2:  #FFC857;
+  --muted:     #6B6750;
+  --danger:    #C84B31;
+  --border:    #D6C29D;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+/* HTML hidden 속성이 display:flex보다 우선하도록 */
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh; min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+}
+
+/* =================================================================
+   ① INTRO
+   ================================================================= */
+.intro {
+  min-height: 100vh; min-height: 100dvh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 32px 24px;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+.intro::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: url('icons/발자국(강).png');
+  background-repeat: repeat;
+  background-size: 220px auto;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.title-img {
+  display: block;
+  max-width: 240px; width: 60vw; height: auto;
+  margin: 0 auto 18px;
+  position: relative;
+}
+
+.lead {
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0 auto 28px;
+  max-width: 320px;
+  font-weight: 500;
+  position: relative;
+}
+
+.hint {
+  font-size: 12px; color: var(--muted);
+  margin-top: 20px; text-align: center;
+  line-height: 1.7;
+  position: relative;
+  max-width: 320px;
+}
+
+/* 공용 버튼 */
+.primary-btn {
+  appearance: none;
+  background: var(--accent);
+  color: #FFF;
+  border: 2px solid var(--ink);
+  padding: 18px 28px;
+  font-size: 17px; font-weight: 800;
+  border-radius: 16px;
+  cursor: pointer;
+  width: 100%; max-width: 280px;
+  font-family: inherit;
+  letter-spacing: -0.01em;
+  box-shadow: 4px 4px 0 var(--ink);
+  position: relative;
+  transition: transform 0.05s;
+}
+.primary-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.secondary-btn {
+  appearance: none;
+  background: var(--bg-paper);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  padding: 18px 24px;
+  font-size: 15px; font-weight: 700;
+  border-radius: 16px;
+  cursor: pointer;
+  width: 100%; max-width: 280px;
+  font-family: inherit;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 0.05s;
+}
+.secondary-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+/* =================================================================
+   ② CAMERA
+   ================================================================= */
+.camera {
+  position: fixed; inset: 0;
+  background: #000;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+#video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+
+.mask-svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+
+.top-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
+  display: flex; justify-content: flex-end;
+  z-index: 5;
+}
+
+.icon-btn {
+  appearance: none;
+  width: 40px; height: 40px;
+  background: rgba(242,228,204,0.95);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px; font-weight: 700;
+  font-family: inherit;
+  box-shadow: 2px 2px 0 var(--ink);
+  display: flex; align-items: center; justify-content: center;
+}
+.icon-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.controls {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom)) 16px;
+  display: flex; flex-direction: column; gap: 18px;
+  align-items: center;
+  background: linear-gradient(to top, rgba(20,34,79,0.45), rgba(20,34,79,0));
+  pointer-events: none;
+  z-index: 4;
+}
+.controls > * { pointer-events: auto; }
+
+/* 줌 컨트롤 (도형 캐러셀 위) */
+.zoom-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(242,228,204,0.92);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 6px 8px 6px 6px;
+  max-width: 320px; width: 90%;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+.zoom-step {
+  appearance: none;
+  width: 32px; height: 32px;
+  flex: 0 0 auto;
+  background: var(--bg);
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 18px; font-weight: 800;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+.zoom-step:active { transform: translate(1px, 1px); }
+.zoom-slider {
+  flex: 1 1 auto;
+  -webkit-appearance: none; appearance: none;
+  height: 4px;
+  background: var(--ink);
+  border-radius: 2px;
+  outline: none;
+  min-width: 0;
+}
+.zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px;
+  background: var(--accent);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.zoom-slider::-moz-range-thumb {
+  width: 22px; height: 22px;
+  background: var(--accent);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.zoom-label {
+  flex: 0 0 auto;
+  min-width: 44px; text-align: right;
+  font-size: 13px; font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  padding-right: 6px;
+}
+
+/* 가로 스크롤 캐러셀 wrap */
+.shape-row-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 100vw;
+}
+.shape-row-wrap::before,
+.shape-row-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 28px;
+  pointer-events: none;
+  z-index: 1;
+}
+.shape-row-wrap::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(20,34,79,0.35), transparent);
+}
+.shape-row-wrap::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(20,34,79,0.35), transparent);
+}
+
+.shape-row {
+  display: flex; gap: 10px;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 6px 16px;
+  scroll-snap-type: x proximity;
+  /* 양 끝 패딩으로 첫·마지막 도형도 가운데로 스냅 */
+  scroll-padding-inline: calc(50% - 28px);
+}
+.shape-row::-webkit-scrollbar { display: none; }
+
+.shape-btn {
+  appearance: none;
+  flex: 0 0 auto;
+  width: 52px; height: 52px;
+  padding: 12px;
+  background: rgba(242,228,204,0.95);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 2px 2px 0 var(--ink);
+  font-family: inherit;
+  scroll-snap-align: center;
+  transition: transform 0.08s, background 0.15s, color 0.15s, width 0.15s, height 0.15s;
+}
+.shape-btn svg { width: 100%; height: 100%; display: block; }
+
+.shape-btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+.shape-btn.active {
+  background: var(--accent);
+  color: #FFF;
+  width: 60px; height: 60px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.capture-btn {
+  appearance: none;
+  width: 80px; height: 80px;
+  background: #FFF;
+  border: 4px solid var(--ink);
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+  box-shadow: 0 4px 0 var(--ink), 0 0 0 4px rgba(255,255,255,0.35);
+  transition: transform 0.05s, box-shadow 0.05s;
+}
+.capture-inner {
+  position: absolute; inset: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: block;
+  transition: transform 0.1s;
+}
+.capture-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--ink), 0 0 0 4px rgba(255,255,255,0.35);
+}
+.capture-btn:active .capture-inner {
+  transform: scale(0.85);
+}
+
+/* 셔터 플래시 효과 */
+.flash {
+  position: absolute; inset: 0;
+  background: #FFF;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+.flash.fire {
+  animation: flash-anim 0.35s ease;
+}
+@keyframes flash-anim {
+  0%   { opacity: 0; }
+  20%  { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
+/* 에러 오버레이 */
+.error-overlay {
+  position: absolute; inset: 0;
+  background: rgba(20,34,79,0.85);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  z-index: 20;
+}
+.error-box {
+  background: var(--bg);
+  border: 2px solid var(--ink);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 320px; width: 100%;
+  text-align: center;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.error-box p {
+  font-size: 14px; font-weight: 600;
+  margin: 0 0 18px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+/* =================================================================
+   ③ PREVIEW
+   ================================================================= */
+.preview {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px 20px calc(24px + env(safe-area-inset-bottom)) 20px;
+  gap: 20px;
+  overflow-y: auto;
+}
+.preview::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image: url('icons/발자국(강).png');
+  background-repeat: repeat;
+  background-size: 220px auto;
+  opacity: 0.05;
+  pointer-events: none;
+}
+.preview > * { position: relative; }
+
+.preview-frame {
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 var(--ink);
+  /* 투명 영역이 보이도록 체크보드 패턴 */
+  background-color: #FFF;
+  background-image:
+    linear-gradient(45deg, #E5D6BC 25%, transparent 25%),
+    linear-gradient(-45deg, #E5D6BC 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #E5D6BC 75%),
+    linear-gradient(-45deg, transparent 75%, #E5D6BC 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  max-width: 100%;
+  max-height: 65vh;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+#preview-img {
+  display: block;
+  max-width: 100%;
+  max-height: 65vh;
+  height: auto; width: auto;
+}
+
+.preview-controls {
+  display: flex; gap: 12px;
+  width: 100%; max-width: 400px;
+}
+.preview-controls > button { flex: 1; max-width: none; }
+
+/* =================================================================
+   Responsive
+   ================================================================= */
+@media (max-height: 640px) {
+  .shape-btn { width: 46px; height: 46px; padding: 11px; }
+  .shape-btn.active { width: 54px; height: 54px; }
+  .capture-btn { width: 66px; height: 66px; }
+  .controls { gap: 14px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+}

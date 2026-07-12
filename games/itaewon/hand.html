@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이태원 능선 그리기 (Surveillance Ridge Collage)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="hand.css">
+    
+    <!-- MediaPipe CDN Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div id="game-container">
+        <!-- HUD Header -->
+        <header>
+            <div id="hud-bar">
+                <div class="hud-item">
+                    <span class="label">STAGE:</span> <span id="stage-val">능선 1 (배경 산맥)</span>
+                </div>
+                <div class="hud-item">
+                    <span class="label">HAND TRACKING:</span> <span id="tracking-status">WAITING</span>
+                </div>
+                <div class="hud-item flex-buttons">
+                    <button id="sound-btn" onclick="toggleSound()">🔊 SOUND ON</button>
+                    <button id="back-btn" onclick="goToMenu()">🐈 CAT GAME</button>
+                    <button id="microbe-btn" onclick="goToMicrobeGame()">🔬 MICROBE GAME</button>
+                    <button id="cctv-btn" onclick="goToCctvGame()">🎬 CCTV GAME</button>
+                </div>
+            </div>
+            <h1 class="glow-title">ITAEWON_RIDGE_COLLAGE</h1>
+        </header>
+
+        <!-- Main Screen -->
+        <main id="sketch-layout">
+            <!-- Left: Webcam + Sketch Canvas -->
+            <section id="canvas-section">
+                <div id="canvas-wrapper">
+                    <!-- Hidden webcam feed -->
+                    <video id="webcam" playsinline style="position: absolute; top: 0; left: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none;"></video>
+                    <!-- Sketch overlay canvas -->
+                    <canvas id="sketch-canvas"></canvas>
+                    
+                    <!-- Mirrored webcam preview inside small box -->
+                    <div id="camera-preview-box">
+                        <canvas id="preview-canvas"></canvas>
+                        <div class="scanline"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right: Instructions & Generated Story -->
+            <section id="panel-section">
+                <!-- Instructions -->
+                <div id="draw-guide">
+                    <h3>그리기 지침 (DRAWING GUIDE)</h3>
+                    <p id="guide-desc">1. 카메라를 켜고 화면 앞에 손을 대십시오.<br>2. 검지손가락 끝(🐾)으로 화면의 <strong>왼쪽 끝에서 오른쪽 끝까지</strong> 부드러운 스케치 선을 그리십시오.<br>3. 궤적을 따라 이태원의 도시들이 자라납니다.</p>
+                    <div id="progress-container">
+                        <div class="progress-label">현재 레이어 드로잉 진행도:</div>
+                        <div class="progress-bar"><div id="draw-progress" class="progress"></div></div>
+                    </div>
+                </div>
+
+                <!-- Story Terminal Display -->
+                <div id="story-panel">
+                    <h3>도시의 이야기 (COLLAGE NARRATIVE)</h3>
+                    <div id="terminal-feed">
+                        <div class="log-line system-line">[SYSTEM] 미디어 파이프 스케치 패널 준비 완료...</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Start Overlay -->
+    <div id="start-overlay" class="overlay">
+        <div class="overlay-content">
+            <h2>이태원 능선 그리기와 도시 콜라주</h2>
+            <p class="subtitle">MEDIAPIPE INTERACTIVE COLLAGE ART</p>
+            <div class="instructions">
+                <p>본 게임은 사용자의 웹캠 카메라와 검지손가락의 움직임을 감지하여 화면에 3단계의 능선을 스케치합니다.</p>
+                <p><strong>원경 (배경 산맥)</strong> -> <strong>중경 (이태원 골목길)</strong> -> <strong>근경 (수풀/울타리)</strong> 순서대로 능선이 그려집니다.</p>
+                <p>그려진 선 위에는 이태원의 명소와 랜드마크 사진들이 콜라주되어 솟아오릅니다.</p>
+                <p>3개의 레이어 드로잉이 모두 완료되면, 당신이 만든 <strong>지형 구조를 분석하여 맞춤형 이야기</strong>를 들려줍니다.</p>
+            </div>
+            <button id="start-btn" onclick="startCamera()">카메라 활성화 및 시작 (START)</button>
+        </div>
+    </div>
+
+    <!-- Story Overlay -->
+    <div id="story-modal" class="overlay hidden" onclick="closeStoryModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 id="story-title">능선에 얽힌 이태원의 전설</h2>
+                <button onclick="closeStoryModal()">X</button>
+            </div>
+            <div class="modal-body" id="story-content">
+                <!-- Detailed story text will go here -->
+            </div>
+            <div style="padding: 15px; text-align: center; border-top: 1px solid var(--border-color)">
+                <button onclick="restartDrawing()">다시 그리기 (RESTART)</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="hand.js"></script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이태원 CCTV 관제실 (Surveillance Duty)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="cctv.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- HUD Header -->
+        <header>
+            <div id="hud-bar">
+                <div class="hud-item">
+                    <span class="label">TIME:</span> <span id="clock-val">12:00 AM</span>
+                </div>
+                <div class="hud-item">
+                    <span class="label">ANOMALIES:</span> <span id="anomaly-counter">0 / 4</span>
+                </div>
+                <div class="hud-item flex-buttons">
+                    <button id="sound-btn" onclick="toggleSound()">🔊 SOUND ON</button>
+                    <button id="back-btn" onclick="goToMenu()">🐈 CAT GAME</button>
+                    <button id="microbe-btn" onclick="goToMicrobeGame()">🔬 MICROBE GAME</button>
+                    <button id="hand-btn" onclick="goToHandGame()">🖐️ RIDGE DRAW</button>
+                </div>
+            </div>
+            <h1 class="blink-text">ITAEWON_SURVEILLANCE_ROOM</h1>
+        </header>
+
+        <!-- Main Screen -->
+        <main id="surveillance-layout">
+            <!-- Left Grid: 6 Monitors -->
+            <section id="monitors-section">
+                <div id="monitors-grid">
+                    <!-- 6 CCTV monitors will be rendered by JS -->
+                </div>
+            </section>
+
+            <!-- Right: Inspection & Report Control Panel -->
+            <section id="control-panel">
+                <div id="active-viewer-container">
+                    <div id="viewer-screen">
+                        <canvas id="viewer-canvas"></canvas>
+                        <div class="scanline"></div>
+                        <div class="crt-flicker"></div>
+                        <div id="cam-tag">NO FEED SELECTED</div>
+                    </div>
+                </div>
+
+                <div id="report-controls">
+                    <h3>신고 제어반 (REPORT DESK)</h3>
+                    <p class="guide-text">선택된 카메라 피드에서 목격한 이상현상을 관제 사령부에 보고하십시오.</p>
+                    
+                    <div class="control-row">
+                        <label for="anomaly-type">현상 분류 (TYPE):</label>
+                        <select id="anomaly-type">
+                            <option value="">-- 분류 선택 --</option>
+                            <option value="cat">고양이 이상 출현 (Cat Intrusion)</option>
+                            <option value="glitch">카메라 신호 노이즈 (Signal Glitch)</option>
+                            <option value="eyes">의문의 붉은 눈빛 (Unidentified Eyes)</option>
+                            <option value="alert">기괴한 경고 벽보 (Eerie Graffiti)</option>
+                        </select>
+                    </div>
+
+                    <button id="report-btn" onclick="submitReport()">이상현상 보고 (SUBMIT REPORT)</button>
+                    
+                    <div id="terminal-feed">
+                        <div class="log-line system-line">[SYSTEM] 관제 콘솔 부팅 완료... 감시 대기 중.</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Start Overlay -->
+    <div id="start-overlay" class="overlay">
+        <div class="overlay-content">
+            <h2>이태원 CCTV 관제실</h2>
+            <p class="subtitle">ITAEWON SURVEILLANCE OBSERVATION DUTY</p>
+            <div class="instructions">
+                <p><strong>수칙 1</strong>: 6개의 CCTV 화면을 유심히 살피십시오.</p>
+                <p><strong>수칙 2</strong>: 화면에서 평소와 다른 <strong>이상현상(고양이 출현, 지직거림, 붉은 눈동자, 이상한 붉은 글씨)</strong>을 발견하면 즉시 해당 모니터를 클릭하십시오.</p>
+                <p><strong>수칙 3</strong>: 우측 하단에서 알맞은 현상을 골라 <strong>[보고]</strong> 하십시오. 틀린 보고를 하면 경고가 쌓입니다.</p>
+                <p><strong>수칙 4</strong>: 미해결된 이상현상이 <strong>4개</strong> 이상 누적되면 관제 네트워크가 마비됩니다. <strong>오전 06:00</strong>까지 생존하십시오.</p>
+            </div>
+            <button id="start-btn" onclick="startGame()">근무 시작 (START SHIFT)</button>
+        </div>
+    </div>
+
+    <!-- Result Overlay -->
+    <div id="result-overlay" class="overlay hidden">
+        <div class="overlay-content">
+            <h2 id="result-title">근무 성공 (SHIFT CLEARED)</h2>
+            <p id="result-desc">무사히 야간 관제 업무를 마치고 교대했습니다.</p>
+            <button id="restart-btn" onclick="startGame()">새 교대 근무 시작 (RESTART)</button>
+        </div>
+    </div>
+
+    <script src="cctv.js"></script>
+</body>
+</html>

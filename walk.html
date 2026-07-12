@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#F2E4CC"/>
+<title>수상한 산책 기록 — 발자국</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root{
+  --bg:#F2E4CC; --paper:#EBD9BB; --ink:#14224F; --mint:#99CECF; --accent:#FF8C57;
+  --yellow:#FFC857; --muted:#6B6750;
+  font-family:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;}
+#map{position:absolute;inset:0;background:var(--bg);}
+
+/* 상단 상태바 */
+.topbar{position:absolute;top:0;left:0;right:0;z-index:1000;
+  padding:calc(env(safe-area-inset-top) + 10px) 12px 10px;
+  background:linear-gradient(to bottom, rgba(242,228,204,.96), rgba(242,228,204,.0));
+  pointer-events:none;}
+.title{font-size:15px;font-weight:800;letter-spacing:-.02em;margin:0 0 8px;padding-left:2px;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.stat{background:var(--paper);border:2px solid var(--ink);border-radius:12px;
+  padding:8px 6px;text-align:center;box-shadow:2px 2px 0 var(--ink);}
+.stat .v{font-size:18px;font-weight:800;line-height:1;letter-spacing:-.03em;}
+.stat .l{font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;}
+.stat .v small{font-size:11px;font-weight:700;}
+
+/* 하단 컨트롤 */
+.dock{position:absolute;left:0;right:0;bottom:0;z-index:1000;
+  padding:12px 12px calc(env(safe-area-inset-bottom) + 14px);
+  background:linear-gradient(to top, rgba(242,228,204,.97), rgba(242,228,204,0));
+  display:flex;flex-direction:column;gap:10px;}
+.rowbtns{display:flex;gap:10px;}
+button{font-family:inherit;font-weight:800;border:2px solid var(--ink);border-radius:14px;
+  box-shadow:3px 3px 0 var(--ink);background:var(--paper);color:var(--ink);
+  padding:13px 10px;font-size:15px;cursor:pointer;transition:transform .05s, box-shadow .05s;}
+button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink);}
+button[disabled]{opacity:.45;box-shadow:none;transform:none;}
+#startBtn{flex:1;background:var(--accent);color:#fff;font-size:17px;padding:16px;}
+#startBtn.on{background:var(--ink);color:var(--yellow);}
+.mini{flex:1;font-size:13.5px;padding:12px 8px;}
+#noteBtn{background:var(--mint);}
+#followBtn.off{background:var(--bg);opacity:.75;}
+
+/* 안내/에러 토스트 */
+.toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1200;
+  max-width:82%;background:var(--ink);color:#fff;border-radius:16px;padding:18px 20px;
+  font-size:14px;line-height:1.6;text-align:center;box-shadow:4px 4px 0 rgba(0,0,0,.25);display:none;}
+.toast b{color:var(--yellow);}
+.toast button{margin-top:14px;background:var(--accent);color:#fff;border-color:#fff;box-shadow:none;}
+
+/* 커스텀 위치 마커 */
+.me-dot{width:18px;height:18px;border-radius:50%;background:var(--mint);
+  border:3px solid var(--ink);box-shadow:0 0 0 6px rgba(20,34,79,.15);}
+.note-label{background:var(--yellow);border:2px solid var(--ink);border-radius:8px;
+  padding:2px 7px;font-size:12px;font-weight:700;color:var(--ink);white-space:normal;
+  max-width:170px;box-shadow:2px 2px 0 rgba(20,34,79,.25);}
+.note-label:before{display:none;}
+.leaflet-tooltip.se{background:var(--ink);color:#fff;border:none;font-weight:800;font-size:12px;border-radius:8px;}
+.leaflet-tooltip.se:before{display:none;}
+.leaflet-control-attribution{font-size:9px;}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="topbar">
+  <div class="title">수상한 산책 기록 · 발자국</div>
+  <div class="stats">
+    <div class="stat"><div class="v" id="sDist">0<small>m</small></div><div class="l">걸은 거리</div></div>
+    <div class="stat"><div class="v" id="sTime">0:00</div><div class="l">시간</div></div>
+    <div class="stat"><div class="v" id="sPts">0</div><div class="l">발자국</div></div>
+    <div class="stat"><div class="v" id="sAcc">–</div><div class="l">정확도</div></div>
+  </div>
+</div>
+
+<div class="dock">
+  <div class="rowbtns">
+    <button id="startBtn">산책 시작</button>
+    <button id="followBtn" class="mini">따라가기 ●</button>
+  </div>
+  <div class="rowbtns">
+    <button id="noteBtn" class="mini" disabled>여기 메모</button>
+    <button id="exportBtn" class="mini" disabled>내보내기</button>
+    <button id="clearBtn" class="mini">지우기</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div id="toastMsg"></div>
+  <button id="toastOk">확인</button>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function(){
+  "use strict";
+  var KEY='suspicious_walk_v1';
+  var state={points:[], notes:[], dist:0, startedAt:null, elapsed:0, tracking:false, follow:true};
+  var watchId=null, timer=null, wakeLock=null;
+
+  // ── 지도 ──
+  var map=L.map('map',{zoomControl:true, attributionControl:true}).setView([37.5345,126.9946],16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
+  var track=L.polyline([], {color:'#FF8C57', weight:6, opacity:.9, lineJoin:'round', lineCap:'round'}).addTo(map);
+  var meIcon=L.divIcon({className:'', html:'<div class="me-dot"></div>', iconSize:[18,18], iconAnchor:[9,9]});
+  var meMarker=null, accCircle=null, noteLayer=L.layerGroup().addTo(map);
+
+  // 사용자가 지도를 만지면 따라가기 해제
+  map.on('dragstart', function(){ setFollow(false); });
+
+  // ── 유틸 ──
+  function el(id){ return document.getElementById(id); }
+  function toast(html, showOk){
+    el('toastMsg').innerHTML=html; el('toast').style.display='block';
+    el('toastOk').style.display = showOk===false ? 'none':'inline-block';
+  }
+  function hideToast(){ el('toast').style.display='none'; }
+  el('toastOk').onclick=hideToast;
+
+  function haversine(a,b){
+    var R=6371000, toR=Math.PI/180;
+    var dLat=(b.lat-a.lat)*toR, dLng=(b.lng-a.lng)*toR;
+    var la1=a.lat*toR, la2=b.lat*toR;
+    var x=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(la1)*Math.cos(la2)*Math.sin(dLng/2)*Math.sin(dLng/2);
+    return 2*R*Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+  }
+  function fmtDist(m){
+    if(m<1000) return Math.round(m)+'<small>m</small>';
+    return (m/1000).toFixed(2)+'<small>km</small>';
+  }
+  function fmtTime(ms){
+    var s=Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+    var mm=(h>0?String(m).padStart(2,'0'):m);
+    return (h>0?h+':':'')+mm+':'+String(ss).padStart(2,'0');
+  }
+
+  function updateStats(){
+    el('sDist').innerHTML=fmtDist(state.dist);
+    var e=state.elapsed + (state.tracking&&state.startedAt ? (Date.now()-state.startedAt):0);
+    el('sTime').textContent=fmtTime(e);
+    el('sPts').textContent=state.points.length;
+  }
+  function redrawTrack(){
+    track.setLatLngs(state.points.map(function(p){return [p.lat,p.lng];}));
+  }
+  function redrawNotes(){
+    noteLayer.clearLayers();
+    state.notes.forEach(function(n){
+      L.marker([n.lat,n.lng]).addTo(noteLayer)
+       .bindTooltip(n.text||'메모', {permanent:true, direction:'top', offset:[0,-10], className:'note-label'})
+       .bindPopup('📍 '+(n.text||''));
+    });
+  }
+
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify({
+      points:state.points, notes:state.notes, dist:state.dist, elapsed:state.elapsed
+    })); }catch(e){}
+  }
+  function load(){
+    try{
+      var raw=localStorage.getItem(KEY); if(!raw) return;
+      var d=JSON.parse(raw);
+      state.points=d.points||[]; state.notes=d.notes||[];
+      state.dist=d.dist||0; state.elapsed=d.elapsed||0;
+      redrawTrack(); redrawNotes(); updateStats();
+      if(state.points.length){
+        var last=state.points[state.points.length-1];
+        map.setView([last.lat,last.lng],17);
+        refreshButtons();
+      }
+    }catch(e){}
+  }
+
+  // ── 위치 콜백 ──
+  function onPos(pos){
+    var lat=pos.coords.latitude, lng=pos.coords.longitude, acc=pos.coords.accuracy||0;
+    el('sAcc').innerHTML = '±'+Math.round(acc)+'<small>m</small>';
+
+    // 현재 위치 마커/정확도 원
+    if(!meMarker){ meMarker=L.marker([lat,lng],{icon:meIcon,zIndexOffset:1000}).addTo(map); }
+    else meMarker.setLatLng([lat,lng]);
+    if(!accCircle){ accCircle=L.circle([lat,lng],{radius:acc,color:'#14224F',weight:1,opacity:.3,fillColor:'#99CECF',fillOpacity:.08}).addTo(map); }
+    else { accCircle.setLatLng([lat,lng]); accCircle.setRadius(acc); }
+
+    if(state.tracking){
+      var last=state.points[state.points.length-1];
+      var here={lat:lat,lng:lng,t:Date.now(),acc:acc};
+      // GPS 잡음 필터: 직전 점에서 4m 이상 이동했을 때만 기록
+      if(!last){ state.points.push(here); }
+      else{
+        var step=haversine(last, here);
+        if(step>=4 && (acc<40 || step>acc)){
+          state.dist+=step; state.points.push(here);
+        }
+      }
+      redrawTrack(); updateStats(); save();
+      if(el('exportBtn').disabled && state.points.length) el('exportBtn').disabled=false;
+    }
+    if(state.follow) map.panTo([lat,lng],{animate:true,duration:.4});
+    if(el('noteBtn').disabled){ el('noteBtn').disabled=false; }
+  }
+  function onErr(err){
+    var msg='위치를 찾을 수 없어요.';
+    if(err && err.code===1) msg='위치 권한이 꺼져 있어요.<br>브라우저 설정에서 이 페이지의 위치 접근을 허용해 주세요.';
+    else if(err && err.code===2) msg='위치 신호가 약해요.<br>하늘이 보이는 곳에서 잠시 기다려 주세요.';
+    else if(err && err.code===3) msg='위치 확인이 오래 걸려요.<br>다시 시도해 주세요.';
+    toast('<b>안내</b><br>'+msg);
+  }
+
+  function ensureSecure(){
+    if(!('geolocation' in navigator)){
+      toast('<b>안내</b><br>이 브라우저는 위치 기능을 지원하지 않아요.'); return false;
+    }
+    // https 또는 localhost가 아니면 모바일에서 위치가 막힘
+    var ok = location.protocol==='https:' || location.hostname==='localhost' || location.hostname==='127.0.0.1';
+    if(!ok){
+      toast('<b>주소를 확인해 주세요</b><br>휴대폰에서는 <b>https</b> 주소로 열어야 위치가 켜집니다.<br>(터널 주소로 접속해 주세요)');
+      return false;
+    }
+    return true;
+  }
+
+  // ── 시작/정지 ──
+  function startTracking(){
+    if(!ensureSecure()) return;
+    state.tracking=true; state.startedAt=Date.now();
+    watchId=navigator.geolocation.watchPosition(onPos,onErr,{enableHighAccuracy:true,maximumAge:1000,timeout:20000});
+    requestWake();
+    if(!timer) timer=setInterval(updateStats,1000);
+    refreshButtons();
+  }
+  function stopTracking(){
+    state.tracking=false;
+    if(state.startedAt){ state.elapsed+=Date.now()-state.startedAt; state.startedAt=null; }
+    if(watchId!=null){ navigator.geolocation.clearWatch(watchId); watchId=null; }
+    releaseWake(); save(); refreshButtons(); updateStats();
+  }
+  function refreshButtons(){
+    var b=el('startBtn');
+    if(state.tracking){ b.textContent='산책 정지'; b.classList.add('on'); }
+    else { b.textContent = state.points.length? '산책 이어가기':'산책 시작'; b.classList.remove('on'); }
+    el('exportBtn').disabled = state.points.length===0;
+  }
+  el('startBtn').onclick=function(){ state.tracking? stopTracking():startTracking(); };
+
+  // 따라가기 토글
+  function setFollow(v){
+    state.follow=v;
+    el('followBtn').textContent= v?'따라가기 ●':'따라가기 ○';
+    el('followBtn').classList.toggle('off', !v);
+  }
+  el('followBtn').onclick=function(){ setFollow(!state.follow); };
+
+  // 메모
+  el('noteBtn').onclick=function(){
+    if(!meMarker){ toast('<b>안내</b><br>현재 위치를 아직 못 잡았어요. 잠시 뒤 다시 눌러 주세요.'); return; }
+    var text=prompt('이 자리에 남길 메모를 적어 주세요.\n(본 것, 들은 것, 떠오른 것)');
+    if(text===null) return;
+    var ll=meMarker.getLatLng();
+    state.notes.push({lat:ll.lat,lng:ll.lng,text:text,t:Date.now()});
+    redrawNotes(); save();
+  };
+
+  // 지우기
+  el('clearBtn').onclick=function(){
+    if(!state.points.length && !state.notes.length){ return; }
+    if(!confirm('기록한 경로와 메모를 모두 지울까요?')) return;
+    if(state.tracking) stopTracking();
+    state.points=[]; state.notes=[]; state.dist=0; state.elapsed=0; state.startedAt=null;
+    redrawTrack(); redrawNotes(); updateStats(); save(); refreshButtons();
+    el('sAcc').textContent='–';
+  };
+
+  // 내보내기 (전체 루트 + 메모가 한눈에 보이는 지도 HTML)
+  el('exportBtn').onclick=function(){
+    if(!state.points.length){ toast('<b>안내</b><br>먼저 산책을 기록해 주세요.'); return; }
+    var data={
+      points: state.points.map(function(p){ return [round(p.lat),round(p.lng)]; }),
+      notes: state.notes.map(function(n){ return {lat:round(n.lat),lng:round(n.lng),text:n.text||''}; }),
+      dist: Math.round(state.dist),
+      elapsed: state.elapsed + (state.tracking&&state.startedAt?(Date.now()-state.startedAt):0),
+      date: new Date().toLocaleString('ko-KR')
+    };
+    var blob=new Blob([buildTripHtml(data)],{type:'text/html;charset=utf-8'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='산책_'+ymd()+'.html';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
+  };
+  function round(n){ return Math.round(n*1e6)/1e6; }
+  function fmtDistTxt(m){ return m<1000? Math.round(m)+' m' : (m/1000).toFixed(2)+' km'; }
+  function fmtTimeTxt(ms){ var s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;
+    return (h>0?h+'시간 ':'')+m+'분 '+ss+'초'; }
+  function ymd(){ var d=new Date(); function z(n){return String(n).padStart(2,'0');}
+    return d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+'_'+z(d.getHours())+z(d.getMinutes()); }
+
+  function buildTripHtml(data){
+    var json=JSON.stringify(data).replace(/</g,'\\u003c');
+    return [
+'<!doctype html><html lang="ko"><head><meta charset="utf-8"/>',
+'<meta name="viewport" content="width=device-width, initial-scale=1"/>',
+'<title>수상한 산책 기록 · '+data.date+'</title>',
+'<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>',
+'<style>*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Arial,sans-serif;color:#14224F}',
+'#map{position:absolute;inset:0;top:92px;background:#F2E4CC}',
+'.bar{position:absolute;top:0;left:0;right:0;height:92px;z-index:1000;background:#F2E4CC;border-bottom:2px solid #14224F;padding:12px 16px;display:flex;flex-direction:column;justify-content:center}',
+'.bar h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-.02em}',
+'.bar .st{margin-top:6px;font-size:13px;color:#6B6750;font-weight:700}.bar .st b{color:#14224F}',
+'.note-label{background:#FFC857;border:2px solid #14224F;border-radius:8px;padding:2px 7px;font-size:12px;font-weight:700;color:#14224F;white-space:normal;max-width:170px;box-shadow:2px 2px 0 rgba(20,34,79,.25)}.note-label:before{display:none}',
+'.leaflet-tooltip.se{background:#14224F;color:#fff;border:none;font-weight:800;font-size:12px;border-radius:8px}.leaflet-tooltip.se:before{display:none}</style></head><body>',
+'<div class="bar"><h1>수상한 산책 기록</h1>',
+'<div class="st">'+data.date+' &middot; 거리 <b>'+fmtDistTxt(data.dist)+'</b> &middot; 시간 <b>'+fmtTimeTxt(data.elapsed)+'</b> &middot; 발자국 <b>'+data.points.length+'</b> &middot; 메모 <b>'+data.notes.length+'</b></div></div>',
+'<div id="map"></div>',
+'<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><'+'/script>',
+'<script>var D='+json+';',
+'var map=L.map("map");L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);',
+'L.polyline(D.points,{color:"#FF8C57",weight:6,opacity:.9,lineJoin:"round",lineCap:"round"}).addTo(map);',
+'if(D.points.length){var s=D.points[0],e=D.points[D.points.length-1];',
+'L.circleMarker(s,{radius:8,color:"#14224F",weight:3,fillColor:"#99CECF",fillOpacity:1}).addTo(map).bindTooltip("출발",{permanent:true,direction:"top",className:"se"});',
+'L.circleMarker(e,{radius:8,color:"#14224F",weight:3,fillColor:"#FF8C57",fillOpacity:1}).addTo(map).bindTooltip("도착",{permanent:true,direction:"top",className:"se"});}',
+'D.notes.forEach(function(n){L.marker([n.lat,n.lng]).addTo(map).bindTooltip(n.text||"메모",{permanent:true,direction:"top",offset:[0,-10],className:"note-label"});});',
+'var all=D.points.concat(D.notes.map(function(n){return [n.lat,n.lng];}));',
+'if(all.length>1){map.fitBounds(all,{padding:[50,50]});}else if(all.length){map.setView(all[0],17);}else{map.setView([37.53,126.99],15);}',
+'<'+'/script></body></html>'
+    ].join('\n');
+  }
+
+  // 화면 꺼짐 방지
+  async function requestWake(){
+    try{ if('wakeLock' in navigator){ wakeLock=await navigator.wakeLock.request('screen'); } }catch(e){}
+  }
+  function releaseWake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){} }
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState==='visible' && state.tracking) requestWake();
+  });
+
+  // 초기화
+  setFollow(true);
+  load();
+  refreshButtons();
+  // 처음 열었을 때 안내(권한은 산책 시작 때 요청)
+  if(!state.points.length){
+    toast('<b>수상한 산책 기록</b><br>산책 시작을 누르면 위치 권한을 물어봐요.<br>허용하면 걸어온 길이 지도에 그려집니다.');
+  }
+})();
+</script>
+</body>
+</html>

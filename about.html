@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#0A0B0E"/>
+<title>이광현 · 파프리 스튜디오 소개</title>
+<style>
+:root{
+  --bg:#0A0B0E; --panel:#14151B; --ink:#F3F3F5; --soft:#9EA0AA; --dim:#6E707A;
+  --line:#23252E; --accent:#FF8C57; --blue:#7FA8FF; --mint:#7FE0D0;
+  font-family:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+a{color:inherit;}
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px;}
+.back{display:inline-block;margin:26px 0 0;color:var(--soft);text-decoration:none;font-size:13px;font-weight:700;}
+.back:hover{color:var(--accent);}
+
+/* HERO */
+.hero{position:relative;padding:70px 0 36px;}
+#cloud{position:absolute;inset:0;width:100%;height:100%;opacity:.55;pointer-events:none;}
+.hero .inner{position:relative;}
+.eyebrow{font-size:12.5px;letter-spacing:.2em;color:var(--soft);font-weight:700;margin:0 0 16px;}
+h1{font-size:clamp(50px,9vw,104px);line-height:.98;font-weight:800;letter-spacing:-.05em;margin:0;}
+.sub{font-size:18px;color:var(--soft);margin:16px 0 0;}
+.rule{width:74px;height:4px;background:var(--accent);border-radius:4px;margin:24px 0 0;}
+.lead{font-size:clamp(18px,2.2vw,22px);line-height:1.65;color:#E2E3E8;max-width:780px;margin:26px 0 0;}
+.lead b{color:var(--accent);font-weight:700;}
+
+/* SECTION */
+section{padding:60px 0;border-top:1px solid var(--line);}
+section:first-of-type{border-top:none;}
+.kicker{font-size:12.5px;letter-spacing:.18em;color:var(--accent);font-weight:800;margin:0 0 12px;}
+h2{font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-.035em;margin:0 0 16px;line-height:1.15;}
+h2 .hsub{display:block;font-size:.58em;font-weight:600;color:var(--soft);letter-spacing:-.01em;margin-top:8px;}
+.body{font-size:16.5px;line-height:1.85;color:#D4D5DB;max-width:680px;}
+.body p{margin:0 0 16px;}
+.body .hl{color:var(--accent);font-weight:600;}
+.body .hl2{color:var(--blue);font-weight:600;}
+
+/* two-up: text + figure */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;}
+.duo.rev .fig{order:-1;}
+@media(max-width:780px){.duo{grid-template-columns:1fr;gap:26px;} .duo.rev .fig{order:0;}}
+.fig{background:#0E0F15;border:1px solid var(--line);border-radius:18px;padding:22px;}
+.fig svg{width:100%;height:auto;display:block;}
+.fig .cap{font-size:12px;color:var(--dim);margin-top:12px;text-align:center;letter-spacing:.02em;}
+
+/* 다섯 시도 */
+.tries{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:8px;}
+@media(max-width:860px){.tries{grid-template-columns:repeat(2,1fr);}}
+.try{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 16px;}
+.try .n{font-size:12px;color:var(--accent);font-weight:800;}
+.try .t{font-size:15.5px;font-weight:800;margin-top:8px;letter-spacing:-.02em;}
+.try .d{font-size:12px;color:var(--soft);margin-top:6px;line-height:1.5;}
+
+/* works */
+.works{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:880px){.works{grid-template-columns:1fr 1fr;}}
+@media(max-width:560px){.works{grid-template-columns:1fr;}}
+.work{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#000;}
+.work img{display:block;width:100%;height:220px;object-fit:cover;}
+.work .cap{position:absolute;left:0;right:0;bottom:0;padding:16px 14px 12px;
+  background:linear-gradient(to top, rgba(5,6,9,.94), rgba(5,6,9,0));}
+.work .cap .t{font-size:15.5px;font-weight:800;letter-spacing:-.02em;}
+.work .cap .m{font-size:11px;color:var(--soft);margin-top:3px;font-weight:600;}
+
+.cv{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:760px){.cv{grid-template-columns:1fr;}}
+.cv .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;}
+.cv .box h3{font-size:13px;color:var(--accent);font-weight:800;letter-spacing:.04em;margin:0 0 12px;}
+.cv .box ul{margin:0;padding:0;list-style:none;}
+.cv .box li{font-size:13.5px;line-height:1.7;color:#C7C8CF;padding-left:14px;position:relative;}
+.cv .box li::before{content:"";position:absolute;left:0;top:.72em;width:5px;height:5px;border-radius:50%;background:var(--soft);}
+
+/* 교육 다리 카드 */
+.bridge{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px;}
+@media(max-width:760px){.bridge{grid-template-columns:1fr;}}
+.bcard{display:block;text-decoration:none;color:var(--ink);background:var(--panel);
+  border:1px solid var(--line);border-radius:16px;padding:20px 18px;transition:border-color .15s,transform .07s;}
+.bcard:hover{border-color:var(--accent);transform:translateY(-2px);}
+.bcard .bk{font-size:11.5px;font-weight:800;letter-spacing:.03em;color:var(--blue);}
+.bcard .bt{font-size:18px;font-weight:800;letter-spacing:-.02em;margin-top:10px;}
+.bcard .bd{font-size:13px;color:var(--soft);line-height:1.6;margin-top:8px;}
+.bcard .bgo{font-size:12.5px;font-weight:800;color:var(--accent);margin-top:14px;}
+
+/* 게임 페이지로 가는 배너 */
+.gamecta{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  text-decoration:none;color:var(--ink);background:linear-gradient(120deg,#16171F,#1C1822);
+  border:1px solid var(--line);border-radius:18px;padding:26px 28px;margin:8px 0 0;
+  transition:border-color .15s,transform .07s;}
+.gamecta:hover{border-color:var(--accent);transform:translateY(-2px);}
+.gamecta .gx .k{font-size:12px;letter-spacing:.16em;color:var(--accent);font-weight:800;}
+.gamecta .gx .t{font-size:clamp(22px,3.4vw,30px);font-weight:800;letter-spacing:-.03em;margin-top:8px;}
+.gamecta .gx .d{font-size:13.5px;color:var(--soft);margin-top:8px;line-height:1.55;max-width:520px;}
+.gamecta .arrow{font-size:30px;font-weight:800;color:var(--accent);flex:none;}
+
+.contact{display:flex;gap:24px;flex-wrap:wrap;align-items:center;padding:40px 0 90px;}
+.contact .label{font-size:12px;color:var(--soft);font-weight:800;letter-spacing:.12em;}
+.contact a{text-decoration:none;font-size:15px;font-weight:600;}
+.contact a:hover{color:var(--accent);}
+.quote{font-size:clamp(20px,3vw,28px);line-height:1.5;font-weight:700;letter-spacing:-.02em;color:var(--ink);max-width:820px;}
+.quote .s{color:var(--soft);}
+</style>
+</head>
+<body>
+
+<div class="wrap"><a class="back" href="./">← 수상한 산책클럽으로</a></div>
+
+<!-- HERO -->
+<div class="hero">
+  <canvas id="cloud"></canvas>
+  <div class="wrap inner">
+    <p class="eyebrow">PAPRI STUDIO · XR · AI · 이머시브 다원예술</p>
+    <h1>이광현</h1>
+    <p class="sub">Lee Kwang-hyun · 파프리 스튜디오</p>
+    <div class="rule"></div>
+    <p class="lead">
+      물리적 현실과 가상 현실 사이, 시간과 공간이 접히고 풀리는 자리를 다룬다.
+      내가 붙잡는 것은 기술이 아니라 그 기술로 <b>관객과 맺는 관계</b>다.
+      관객이 어디에 서고 무엇이 되어 보는가, 거기서 작업이 시작된다.
+    </p>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- 1. 매체를 넘어선다 -->
+  <section>
+    <p class="kicker">XR이 하는 일 · 01</p>
+    <div class="duo">
+      <div>
+        <h2>매체를 넘어선다<span class="hsub">화면을 더 좋게 만드는 것이 아니라, 화면을 끝낸다</span></h2>
+        <div class="body">
+          <p>화면은 프레임이다. 원근법은 600년 동안 세계를 창틀 안에 가두고 그 앞에 한 사람을 세웠다.
+          그 사람은 보는 주체가 되고 나머지는 보이는 대상이 된다.</p>
+          <p><span class="hl">XR은 더 좋은 화면이 아니라 화면을 없앤 매체다.</span> 프레임이 사라지면 바깥이라는 것도 사라지고,
+          관객은 들여다보는 눈이 아니라 장면 안에 선 몸이 된다. 카메라를 관객에게 넘기는 일이기도 하다.</p>
+        </div>
+      </div>
+      <div class="fig">
+        <svg viewBox="0 0 440 280" aria-label="프레임과 단일 시점">
+          <rect x="14" y="14" width="412" height="212" rx="6" fill="none" stroke="#2a2c36"/>
+          <line x1="14" y1="120" x2="426" y2="120" stroke="#2a2c36"/>
+          <g stroke="#3a3d4a">
+            <line x1="14" y1="226" x2="220" y2="120"/><line x1="100" y1="226" x2="220" y2="120"/>
+            <line x1="186" y1="226" x2="220" y2="120"/><line x1="254" y1="226" x2="220" y2="120"/>
+            <line x1="340" y1="226" x2="220" y2="120"/><line x1="426" y1="226" x2="220" y2="120"/>
+            <line x1="14" y1="14" x2="220" y2="120"/><line x1="426" y1="14" x2="220" y2="120"/>
+          </g>
+          <g stroke="#23252e">
+            <line x1="60" y1="175" x2="380" y2="175"/><line x1="95" y1="150" x2="345" y2="150"/><line x1="125" y1="133" x2="315" y2="133"/>
+          </g>
+          <circle cx="220" cy="120" r="6" fill="#FF8C57"/>
+          <text x="232" y="116" fill="#FF8C57" font-size="13" font-weight="700">소실점</text>
+          <circle cx="220" cy="258" r="9" fill="none" stroke="#9EA0AA" stroke-width="2"/>
+          <circle cx="220" cy="258" r="3" fill="#9EA0AA"/>
+          <text x="238" y="262" fill="#9EA0AA" font-size="12">단 하나의 시점</text>
+        </svg>
+        <div class="cap">프레임이 깨지면, 안과 밖이 사라진다</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 층위를 벗어난다 -->
+  <section>
+    <p class="kicker">XR이 하는 일 · 02</p>
+    <div class="duo rev">
+      <div>
+        <h2>층위를 벗어난다<span class="hsub">정해진 자리에 머물지 않는다</span></h2>
+        <div class="body">
+          <p>현실은 여러 겹으로 나뉘어 있다. 무대와 객석, 화면과 그 앞에 앉은 사람.
+          우리는 대개 한 층에 머문 채 다른 층을 바라본다.</p>
+          <p>XR은 그 층을 <span class="hl">통과하게 한다.</span> 관객은 한 자리에 고정되지 않고 장면의 안과 밖을 오간다.
+          정해진 자리에서 벗어나 보면 같은 장면도 전혀 다르게 만져진다.</p>
+        </div>
+      </div>
+      <div class="fig">
+        <svg viewBox="0 0 440 280" aria-label="층위를 통과한다">
+          <g fill="rgba(127,168,255,0.05)" stroke="#2f3340">
+            <polygon points="90,228 350,228 300,203 40,203"/>
+            <polygon points="90,182 350,182 300,157 40,157"/>
+            <polygon points="90,136 350,136 300,111 40,111"/>
+            <polygon points="90,90 350,90 300,65 40,65"/>
+          </g>
+          <line x1="205" y1="252" x2="205" y2="44" stroke="#FF8C57" stroke-width="2"/>
+          <polygon points="205,38 199,52 211,52" fill="#FF8C57"/>
+          <circle cx="205" cy="215" r="4.5" fill="#FF8C57"/>
+          <circle cx="205" cy="169" r="4.5" fill="#FF8C57"/>
+          <circle cx="205" cy="123" r="4.5" fill="#FF8C57"/>
+          <circle cx="205" cy="77" r="4.5" fill="#FF8C57"/>
+          <text x="222" y="60" fill="#FF8C57" font-size="12">층을 통과</text>
+        </svg>
+        <div class="cap">한 층에 머물지 않고 통과한다</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 시공간을 넘나든다 -->
+  <section>
+    <p class="kicker">XR이 하는 일 · 03</p>
+    <div class="duo">
+      <div>
+        <h2>시공간을 넘나든다<span class="hsub">한 자리에 다른 시간을 겹친다</span></h2>
+        <div class="body">
+          <p>한 공간에 다른 시간을 겹칠 수 있다. 움직임을 기록해 두면 과거의 나와 지금의 내가
+          같은 자리에 나란히 선다. <span class="hl2">여기와 저기도 포갤 수 있다.</span></p>
+          <p>〈문문문〉에서 열두 명의 관객은 같은 달을 본다. 그런데 선 자리가 달라서 모두 다른 달을 본다.
+          중심에 선 한 사람은 없다. <span class="hl">각자가 자기 자리의 달을 가진다.</span></p>
+        </div>
+      </div>
+      <div class="fig">
+        <svg viewBox="0 0 440 280" aria-label="다중 자아, 과거 현재 미래">
+          <line x1="40" y1="210" x2="400" y2="210" stroke="#23252e"/>
+          <g id="selves"></g>
+          <text x="110" y="240" fill="#7FA8FF" font-size="12" text-anchor="middle">과거</text>
+          <text x="220" y="240" fill="#E8E8EC" font-size="12" text-anchor="middle">현재</text>
+          <text x="330" y="240" fill="#FF8C57" font-size="12" text-anchor="middle">미래</text>
+        </svg>
+        <div class="cap">과거와 현재를 한 자리에 겹친다</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 낯선 몸으로 -->
+  <section>
+    <p class="kicker">XR이 하는 일 · 04</p>
+    <div class="duo rev">
+      <div>
+        <h2>낯선 몸으로 서로를 체험한다<span class="hsub">멀리서 이해하던 일을, 그 몸이 되어 겪는다</span></h2>
+        <div class="body">
+          <p>XR은 다른 사람의 몸으로 걸어 들어가게 한다. <span class="hl2">낯선 이주민의 눈으로 거리를 걷고,</span>
+          내가 아닌 존재의 자리에서 같은 세계를 본다.</p>
+          <p>보는 것과 그 몸이 되어 보는 것은 다르다. 멀리서 이해한다고 말하던 일을 잠시 그 몸을 입고 겪게 된다.
+          관객은 그렇게 <span class="hl">서로를 안에서 체험한다.</span></p>
+        </div>
+      </div>
+      <div class="fig">
+        <svg viewBox="0 0 440 280" aria-label="낯선 몸으로 들어간다">
+          <!-- 나 (왼쪽, 점선 파랑) -->
+          <g stroke="#7FA8FF" fill="rgba(127,168,255,0.06)" stroke-dasharray="4 4">
+            <circle cx="120" cy="105" r="20"/>
+            <path d="M94,214 Q88,152 106,134 Q120,126 134,134 Q152,152 146,214 Z"/>
+          </g>
+          <text x="120" y="244" fill="#7FA8FF" font-size="12" text-anchor="middle">나 (여기)</text>
+          <!-- 타인 (오른쪽, 채운 주황) -->
+          <g stroke="#FF8C57" fill="rgba(255,140,87,0.85)">
+            <circle cx="320" cy="105" r="20"/>
+            <path d="M294,214 Q288,152 306,134 Q320,126 334,134 Q352,152 346,214 Z"/>
+          </g>
+          <text x="320" y="244" fill="#FF8C57" font-size="12" text-anchor="middle">낯선 몸</text>
+          <!-- 들어가는 화살 -->
+          <path d="M158,96 Q220,46 282,96" fill="none" stroke="#9EA0AA" stroke-dasharray="3 5"/>
+          <polygon points="282,96 270,90 274,102" fill="#9EA0AA"/>
+          <text x="220" y="40" fill="#C7C8CF" font-size="12" text-anchor="middle">들어간다</text>
+          <!-- 발자국 -->
+          <g fill="#3a3d4a">
+            <ellipse cx="180" cy="150" rx="5" ry="8" transform="rotate(20 180 150)"/>
+            <ellipse cx="210" cy="160" rx="5" ry="8" transform="rotate(20 210 160)"/>
+            <ellipse cx="240" cy="160" rx="5" ry="8" transform="rotate(20 240 160)"/>
+            <ellipse cx="270" cy="150" rx="5" ry="8" transform="rotate(20 270 150)"/>
+          </g>
+        </svg>
+        <div class="cap">낯선 몸으로 들어가, 그 자리에서 본다</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 가면을 쓴다 -->
+  <section>
+    <p class="kicker">XR이 하는 일 · 05</p>
+    <div class="duo">
+      <div>
+        <h2>가면을 쓴다<span class="hsub">연극의 페르소나, 그리고 XR의 아바타</span></h2>
+        <div class="body">
+          <p>연극은 오래전부터 가면을 썼다. 가면은 얼굴을 가리는 동시에 다른 존재가 되게 한다.
+          페르소나 뒤에서 배우는 평소의 자신을 잠시 내려놓는다.</p>
+          <p>XR의 아바타도 가면이다. 다른 몸과 다른 얼굴을 입으면 관객은 안 해본 말을 하고 안 해본 몸짓을 한다.
+          <span class="hl">가면을 쓰면 숨는 동시에 풀려난다.</span> 평소엔 못 하던 것이 그제야 나온다.</p>
+        </div>
+      </div>
+      <div class="fig">
+        <svg viewBox="0 0 440 280" aria-label="가면과 그 뒤의 얼굴">
+          <!-- 뒤의 얼굴 -->
+          <circle cx="248" cy="138" r="78" fill="none" stroke="#2f3340" stroke-dasharray="4 5"/>
+          <!-- 가면 -->
+          <path d="M132,128 Q132,60 220,58 Q308,60 308,128 Q308,196 220,224 Q132,196 132,128 Z"
+                fill="#14151B" stroke="#FF8C57" stroke-width="2"/>
+          <line x1="220" y1="70" x2="220" y2="210" stroke="#23252e"/>
+          <!-- 눈 구멍 -->
+          <path d="M168,128 Q186,114 206,128 Q186,140 168,128 Z" fill="#0A0B0E" stroke="#FF8C57"/>
+          <path d="M234,128 Q254,114 272,128 Q254,140 234,128 Z" fill="#0A0B0E" stroke="#FF8C57"/>
+          <!-- 입 -->
+          <path d="M194,182 Q220,196 246,182" fill="none" stroke="#FF8C57" stroke-width="2"/>
+          <!-- 끈 -->
+          <line x1="132" y1="118" x2="92" y2="108" stroke="#3a3d4a"/>
+          <line x1="308" y1="118" x2="348" y2="108" stroke="#3a3d4a"/>
+          <text x="220" y="256" fill="#FF8C57" font-size="12" text-anchor="middle">페르소나</text>
+        </svg>
+        <div class="cap">가면 뒤에서 다른 존재가 된다</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 되풀이하는 다섯 가지 시도 -->
+  <section>
+    <p class="kicker">작업의 방법 · 다섯 가지</p>
+    <h2>되풀이하는 다섯 가지 시도</h2>
+    <div class="tries">
+      <div class="try"><div class="n">01</div><div class="t">프레임 벗기</div><div class="d">화면 밖으로 걸어 나온 관객</div></div>
+      <div class="try"><div class="n">02</div><div class="t">시점의 해방</div><div class="d">관객의 몸이 곧 카메라</div></div>
+      <div class="try"><div class="n">03</div><div class="t">시간의 겹침</div><div class="d">과거와 현재를 한 공간에</div></div>
+      <div class="try"><div class="n">04</div><div class="t">다른 몸 입기</div><div class="d">낯선 존재의 자리에서 보기</div></div>
+      <div class="try"><div class="n">05</div><div class="t">가면의 자유</div><div class="d">페르소나 뒤에서 해보는 말과 몸짓</div></div>
+    </div>
+  </section>
+
+  <!-- 작업이 교육으로 이어진다 -->
+  <section id="edu">
+    <p class="kicker">전시에서 산책으로</p>
+    <h2>작업이 교육으로 이어진다<span class="hsub">관객을 만들던 질문을 그대로 워크숍으로 가져간다</span></h2>
+    <div class="body" style="margin-bottom:24px;">
+      이 물음들은 전시장에만 머물지 않는다. 〈수상한 산책클럽〉에서 참여자는 작품을 구경하는 대신
+      직접 골목을 걷고, 도시의 소리를 듣고, 또 다른 존재를 그린다. 갤러리의 관객과 워크숍의 참여자는
+      결국 같은 사람이다. 자기 몸과 선택으로 작품을 완성하는 사람이다.
+    </div>
+    <div class="bridge">
+      <a class="bcard" href="walk.html">
+        <div class="bk">시공간을 넘나든다</div>
+        <div class="bt">산책 기록</div>
+        <div class="bd">GPS로 걸어온 길과 골목에서 남긴 메모를 지도에 그린다. 걸음이 곧 기록이 된다.</div>
+        <div class="bgo">프로그램 열기 →</div>
+      </a>
+      <a class="bcard" href="camera/">
+        <div class="bk">시점의 해방</div>
+        <div class="bt">도형 카메라</div>
+        <div class="bd">관객이 직접 카메라가 되어 세모·네모·동그라미 안에 골목의 풍경을 담는다.</div>
+        <div class="bgo">프로그램 열기 →</div>
+      </a>
+      <a class="bcard" href="character.html">
+        <div class="bk">낯선 몸 · 가면</div>
+        <div class="bt">캐릭터 메이커</div>
+        <div class="bd">도시를 산책하는 또 다른 존재를 그린다. 잠시 써보는 나의 가면이 된다.</div>
+        <div class="bgo">프로그램 열기 →</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- 선택 작업 -->
+  <section>
+    <p class="kicker">SELECTED WORKS</p>
+    <h2>선택 작업</h2>
+    <div class="body" style="margin-bottom:24px;">관객의 몸과 선택이 작품의 구조가 되는 XR · MR · 인터랙티브 작업들.</div>
+    <div class="works">
+      <div class="work"><img src="about_img/work_moon.png" alt=""/>
+        <div class="cap"><div class="t">문문문</div><div class="m">XR Dance · 국립현대무용단 · 2025</div></div></div>
+      <div class="work"><img src="about_img/work_trpg.png" alt=""/>
+        <div class="cap"><div class="t">TRPG:TRPG</div><div class="m">관객의 그림을 AI가 실시간으로 · 성수 CT Fair</div></div></div>
+      <div class="work"><img src="about_img/work_passhass.png" alt=""/>
+        <div class="cap"><div class="t">PassHass</div><div class="m">VR Theater · 아르스 일렉트로니카</div></div></div>
+      <div class="work"><img src="about_img/work_kitty.png" alt=""/>
+        <div class="cap"><div class="t">키티폰의 비밀메시지</div><div class="m">VR · 산리오 버추얼 페스티벌 한국 대표</div></div></div>
+      <div class="work"><img src="about_img/work_box.png" alt=""/>
+        <div class="cap"><div class="t">A Person Inside the Box</div><div class="m">MR · 아트코리아랩</div></div></div>
+      <div class="work"><img src="about_img/work_hana.png" alt=""/>
+        <div class="cap"><div class="t">Hana : Starting Over</div><div class="m">XR Musical · K-Arts</div></div></div>
+    </div>
+  </section>
+
+  <!-- CV -->
+  <section>
+    <p class="kicker">CV</p>
+    <div class="cv">
+      <div class="box">
+        <h3>선정 · 초청</h3>
+        <ul>
+          <li>SXSW · 공식 초청</li>
+          <li>아르스 일렉트로니카 · PASI(2024), PASSHASS(2023)</li>
+          <li>BIFAN XR · Beyond Reality 경쟁부문</li>
+          <li>가오슝 영화제 · XR Dreamland</li>
+          <li>산리오 버추얼 페스티벌 · 한국 대표 선정</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>교육 · 강의</h3>
+        <ul>
+          <li>한국예술종합학교 영상원 강사 · 가상현실·이머시브 미디어</li>
+          <li>아트코리아랩 〈수퍼테스트베드〉 · XR·메타버스 랩 멘토</li>
+          <li>계원예술대학교 · XR 뉴미디어 특강</li>
+          <li>LG 아트&테크 영재 멘토 · LG연암문화재단</li>
+          <li>부천국제판타스틱영화제·주한프랑스대사관 〈Next Code of Creation: AI and XR〉 포럼 연사 (2025)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 닫는 문장 -->
+  <section style="border-top:none;">
+    <p class="quote">프레임이 사라지면 관객은 더 이상 바깥에서 보지 않는다.<br/>
+      <span class="s">전시장에서든 골목에서든, 그 사람이 직접 걷고 선택할 때 작품이 완성된다. 나는 늘 그 자리를 만들어 왔다.</span></p>
+  </section>
+
+  <a class="gamecta" href="games.html">
+    <div class="gx">
+      <div class="k">GAMES &amp; PLAY</div>
+      <div class="t">만든 게임들 보러 가기</div>
+      <div class="d">이태원의 골목을 걷는 마음으로 만든 작은 웹 게임들. 도시를 다르게 보게 한다.</div>
+    </div>
+    <div class="arrow">→</div>
+  </a>
+
+  <div class="contact">
+    <span class="label">CONTACT</span>
+    <a href="mailto:k.hyun2417@gmail.com">k.hyun2417@gmail.com</a>
+    <a href="https://instagram.com/lee.mersive" target="_blank" rel="noopener">@lee.mersive</a>
+  </div>
+
+</div>
+
+<script>
+// 히어로 점구름 (캔버스)
+(function(){
+  const c=document.getElementById('cloud'); if(!c) return;
+  const ctx=c.getContext('2d'); let w,h,pts=[];
+  function rnd(a,b){return a+Math.random()*(b-a);}
+  function init(){
+    const r=c.parentElement.getBoundingClientRect();
+    w=c.width=r.width*devicePixelRatio; h=c.height=r.height*devicePixelRatio;
+    pts=[]; const n=Math.floor(r.width*r.height/450);
+    for(let i=0;i<n;i++){
+      const cx=w*0.72, cy=h*0.5, rx=w*0.26, ry=h*0.42;
+      const a=rnd(0,Math.PI*2), rr=Math.pow(Math.random(),0.6);
+      pts.push({x:cx+Math.cos(a)*rx*rr*rnd(0.6,1), y:cy+Math.sin(a)*ry*rr*rnd(0.6,1),
+                s:rnd(0.6,2.2)*devicePixelRatio, o:rnd(0.15,0.8)});
+    }
+    draw();
+  }
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    for(const p of pts){ ctx.fillStyle='rgba(160,178,210,'+p.o+')'; ctx.beginPath(); ctx.arc(p.x,p.y,p.s,0,7); ctx.fill(); }
+  }
+  init(); window.addEventListener('resize',init);
+})();
+// 다중 자아 (점으로 그린 세 인물)
+(function(){
+  const g=document.getElementById('selves'); if(!g) return;
+  const cols=[['#7FA8FF',110],['#E8E8EC',220],['#FF8C57',330]];
+  function figure(cx,color){
+    const parts=[[0,-86,9],[0,-58,7],[0,-20,16],[0,18,12],[-22,-40,5],[22,-40,5],[-12,40,5],[12,40,5]];
+    for(const [dx,dy,rad] of parts){
+      for(let k=0;k<rad*5;k++){ const a=Math.random()*6.28,r=Math.random()*rad;
+        const x=cx+dx+Math.cos(a)*r, y=170+dy+Math.sin(a)*r;
+        const d=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        d.setAttribute('cx',x);d.setAttribute('cy',y);d.setAttribute('r',Math.random()*1.3+0.4);
+        d.setAttribute('fill',color); d.setAttribute('opacity',0.35+Math.random()*0.5); g.appendChild(d);}
+    }
+  }
+  cols.forEach(([c,x])=>figure(x,c));
+})();
+</script>
+</body>
+</html>

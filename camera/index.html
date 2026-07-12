@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#F2E4CC" />
+  <title>수상한 산책클럽 — 카메라</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ① 시작 화면 -->
+  <main id="intro" class="intro">
+    <img class="title-img" src="icons/타이틀.png" alt="수상한 산책클럽" />
+    <p class="lead">
+      골목의 이상한 것들을<br/>
+      세모, 네모, 동그라미 안에 담아보세요.
+    </p>
+    <button id="start-btn" class="primary-btn">카메라 시작</button>
+    <p class="hint">
+      ※ 시작을 누르면 카메라 권한을 묻습니다.<br/>
+      후면 카메라가 자동으로 켜져요.
+    </p>
+  </main>
+
+  <!-- ② 카메라 화면 -->
+  <main id="camera" class="camera" hidden>
+    <video id="video" autoplay muted playsinline></video>
+    <svg id="mask-svg" class="mask-svg" preserveAspectRatio="none"></svg>
+
+    <div class="top-bar">
+      <button id="close-btn" class="icon-btn" aria-label="닫기">✕</button>
+    </div>
+
+    <div class="controls">
+      <div id="zoom-bar" class="zoom-bar" hidden>
+        <button id="zoom-out" class="zoom-step" aria-label="줌 아웃">−</button>
+        <input id="zoom-slider" class="zoom-slider" type="range" min="1" max="3" step="0.05" value="1" />
+        <button id="zoom-in" class="zoom-step" aria-label="줌 인">+</button>
+        <span id="zoom-label" class="zoom-label">1.0×</span>
+      </div>
+      <div class="shape-row-wrap">
+        <div id="shape-row" class="shape-row" role="group" aria-label="도형 선택"></div>
+      </div>
+      <button id="capture-btn" class="capture-btn" aria-label="촬영">
+        <span class="capture-inner"></span>
+      </button>
+    </div>
+
+    <div id="error-overlay" class="error-overlay" hidden>
+      <div class="error-box">
+        <p id="error-text"></p>
+        <button id="error-retry" class="primary-btn">다시 시도</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ③ 결과 미리보기 -->
+  <main id="preview" class="preview" hidden>
+    <div class="preview-frame">
+      <img id="preview-img" alt="촬영 결과" />
+    </div>
+    <div class="preview-controls">
+      <button id="retake-btn" class="secondary-btn">다시 찍기</button>
+      <button id="download-btn" class="primary-btn">저장</button>
+    </div>
+    <p id="download-hint" class="hint" hidden>
+      ※ 이미지를 길게 눌러 사진 앨범에 저장할 수 있어요.
+    </p>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
