@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#1a1030"/>
+<title>옥상 파쿠르 — 기울여 달리기</title>
+<style>
+:root{--accent:#FF8C57;--mint:#7FE0D0;--ink:#14224F;--yellow:#FFC857;
+  font-family:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Helvetica Neue",Arial,sans-serif;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;}
+html,body{margin:0;height:100%;overflow:hidden;background:#12081f;color:#fff;touch-action:none;overscroll-behavior:none;}
+#game{position:absolute;inset:0;display:block;width:100%;height:100%;}
+
+.hud{position:absolute;top:calc(env(safe-area-inset-top) + 12px);left:0;right:0;z-index:5;
+  display:flex;justify-content:space-between;padding:0 16px;pointer-events:none;}
+.hud .chip{background:rgba(10,6,20,.55);border:1.5px solid rgba(255,255,255,.25);border-radius:12px;
+  padding:7px 13px;font-weight:800;font-size:15px;letter-spacing:.02em;backdrop-filter:blur(4px);}
+.hud .chip b{color:var(--yellow);}
+
+/* 점프 버튼 */
+#jumpBtn{position:absolute;z-index:6;right:22px;bottom:calc(env(safe-area-inset-bottom) + 26px);
+  width:104px;height:104px;border-radius:50%;border:3px solid #fff;background:rgba(255,140,87,.9);
+  color:#fff;font-weight:900;font-size:19px;box-shadow:0 6px 0 rgba(0,0,0,.35);display:none;}
+#jumpBtn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.35);}
+
+/* 오버레이 화면 */
+.screen{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:28px;background:radial-gradient(120% 90% at 50% 10%, rgba(58,42,90,.6), rgba(18,8,31,.92));}
+.screen[hidden]{display:none;}
+.kick{font-size:13px;letter-spacing:.22em;color:var(--mint);font-weight:800;margin:0 0 10px;}
+.screen h1{font-size:clamp(34px,10vw,60px);font-weight:900;letter-spacing:-.03em;margin:0;line-height:1.02;}
+.screen h1 .o{color:var(--accent);}
+.screen p{font-size:15px;line-height:1.7;color:#cfc7e6;max-width:340px;margin:18px 0 0;}
+.screen p b{color:#fff;}
+.big{font-size:64px;font-weight:900;color:var(--yellow);margin:6px 0 0;line-height:1;}
+.small{font-size:13px;color:#a99fc9;margin-top:8px;}
+.btn{margin-top:26px;border:none;border-radius:16px;background:var(--accent);color:#fff;
+  font-weight:900;font-size:19px;padding:16px 40px;box-shadow:0 5px 0 #b3572d;cursor:pointer;font-family:inherit;}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #b3572d;}
+.how{display:flex;gap:16px;margin-top:22px;flex-wrap:wrap;justify-content:center;}
+.how .c{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);border-radius:14px;
+  padding:12px 14px;width:140px;}
+.how .c .i{font-size:26px;}
+.how .c .t{font-size:13px;font-weight:800;margin-top:6px;}
+.how .c .d{font-size:11.5px;color:#b6adcf;margin-top:3px;line-height:1.4;}
+.note{margin-top:20px;font-size:12px;color:#8f86ad;}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div class="hud" id="hud" hidden>
+  <div class="chip">거리 <b id="dist">0</b> m</div>
+  <div class="chip">✦ <b id="score">0</b></div>
+</div>
+<button id="jumpBtn">JUMP</button>
+
+<!-- 시작 화면 -->
+<section class="screen" id="startScreen">
+  <p class="kick">GYRO PARKOUR</p>
+  <h1>옥상 <span class="o">파쿠르</span></h1>
+  <p>휴대폰을 <b>좌우로 기울여</b> 달리는 자리를 옮기고,<br/><b>JUMP</b>로 건물 사이를 뛰어넘어요.</p>
+  <div class="how">
+    <div class="c"><div class="i">📱↔️</div><div class="t">기울이기</div><div class="d">폰을 좌우로 기울여 이동</div></div>
+    <div class="c"><div class="i">⬆️</div><div class="t">점프</div><div class="d">틈이 오면 JUMP를 눌러 뛰기</div></div>
+    <div class="c"><div class="i">✦</div><div class="t">모으기</div><div class="d">빛나는 점을 지나며 점수</div></div>
+  </div>
+  <button class="btn" id="startBtn">시작하기</button>
+  <p class="note">폰에서 열면 기울기 센서로 조종해요. (권한을 물어보면 허용)</p>
+</section>
+
+<!-- 게임오버 -->
+<section class="screen" id="overScreen" hidden>
+  <p class="kick">GAME OVER</p>
+  <h1 id="overTitle">떨어졌다!</h1>
+  <div class="big"><span id="finalScore">0</span></div>
+  <div class="small">거리 <span id="finalDist">0</span> m · 최고 <span id="best">0</span></div>
+  <button class="btn" id="retryBtn">다시 달리기</button>
+</section>
+
+<script>
+(function(){
+  "use strict";
+  var cv=document.getElementById('game'), ctx=cv.getContext('2d');
+  var W=0,H=0,DPR=Math.min(window.devicePixelRatio||1,2);
+  function resize(){ W=cv.clientWidth; H=cv.clientHeight; cv.width=W*DPR; cv.height=H*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); }
+  window.addEventListener('resize',resize);
+
+  // ── 상태 ──
+  var el=function(id){return document.getElementById(id);};
+  var state='start';
+  var player, ents, spawnZ, speed, dist, score, tiltX, targetX, jumpV, jumpY, jumping, best, lastT, gameSeed;
+  var gyroOn=false, baseGamma=null, rawGamma=0, keyL=false, keyR=false, pointerX=null;
+  best=parseInt(localStorage.getItem('parkour_best')||'0',10);
+
+  // ── 투영(의사 3D) ──
+  function horizon(){ return H*0.34; }
+  function ground(){ return H*0.82; }
+  function proj(z){ var t=Math.max(0,Math.min(1,z)); return { y: ground()+(horizon()-ground())*t, s: 1-0.80*t }; }
+  function roadHalf(z){ return W*0.47*proj(z).s; }
+  function sx(worldX,z){ return W/2 + worldX*roadHalf(z); }
+
+  function reset(){
+    player={x:0}; ents=[]; spawnZ=1; speed=0.32; dist=0; score=0;
+    tiltX=0; targetX=0; jumpV=0; jumpY=0; jumping=false; lastT=0;
+    // 시작 여유 구간
+    var z=1.0;
+    for(var i=0;i<40;i++){ maybeSpawn(z); z+=0.14; }
+  }
+
+  var patternCooldown=0;
+  function maybeSpawn(z){
+    // 초반 안전거리
+    if(z<1.15 && dist<2) return;
+  }
+  function spawnAhead(){
+    // 새 엔티티를 지평선 너머(z>1)에서 생성
+    spawnZ += speed*0.016*60/60; // placeholder; 실제 생성은 update에서 간격 기반
+  }
+
+  // 간격 기반 생성기
+  var nextSpawn=1.4;
+  function generate(){
+    // ents 중 가장 먼 z
+    // 새 장애물/코인/틈을 z=1.25 근처에 배치, 간격 유지
+    var r=rnd();
+    var z=1.25;
+    if(r<0.30){ // 틈(점프 필요)
+      ents.push({type:'gap', z:z, w:0.9});
+    } else if(r<0.68){ // 장애물(피하기)
+      var lane=(rnd()*2-1)*0.72;
+      ents.push({type:'wall', z:z, x:lane, w:0.32});
+    } else { // 코인 줄
+      var lx=(rnd()*2-1)*0.7;
+      for(var k=0;k<3;k++) ents.push({type:'coin', z:z+k*0.10, x:lx, got:false});
+    }
+  }
+  // 간단 결정적 난수(시드) — 매 게임 다르게
+  var seed=1;
+  function rnd(){ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; }
+
+  // ── 입력 ──
+  function onKey(e,down){
+    if(e.code==='ArrowLeft'||e.key==='ArrowLeft'){ keyL=down; }
+    else if(e.code==='ArrowRight'||e.key==='ArrowRight'){ keyR=down; }
+    else if((e.code==='Space'||e.key===' ')&&down){ doJump(); e.preventDefault(); }
+  }
+  window.addEventListener('keydown',function(e){onKey(e,true);});
+  window.addEventListener('keyup',function(e){onKey(e,false);});
+  // 포인터 스티어링(자이로 없을 때)
+  cv.addEventListener('pointerdown',function(e){ pointerX=e.clientX; });
+  cv.addEventListener('pointermove',function(e){ if(e.buttons||e.pointerType==='touch') pointerX=e.clientX; });
+  cv.addEventListener('pointerup',function(){ /* keep last */ });
+  // 자이로 없을 때 캔버스 탭도 점프
+  cv.addEventListener('click',function(){ if(!gyroOn) doJump(); });
+  el('jumpBtn').addEventListener('touchstart',function(e){ e.preventDefault(); doJump(); },{passive:false});
+  el('jumpBtn').addEventListener('mousedown',function(e){ e.preventDefault(); doJump(); });
+
+  function onOrient(e){ if(e.gamma!=null){ gyroOn=true; rawGamma=e.gamma; if(baseGamma===null) baseGamma=e.gamma; } }
+  function enableGyro(){
+    if(typeof DeviceOrientationEvent!=='undefined' && typeof DeviceOrientationEvent.requestPermission==='function'){
+      DeviceOrientationEvent.requestPermission().then(function(r){ if(r==='granted') window.addEventListener('deviceorientation',onOrient); })
+        .catch(function(){});
+    } else if(window.DeviceOrientationEvent){ window.addEventListener('deviceorientation',onOrient); }
+  }
+  function recenter(){ baseGamma = gyroOn ? rawGamma : null; }
+
+  function doJump(){ if(state==='play' && !jumping){ jumping=true; jumpV=-1.15; } }
+
+  // ── 게임 시작 ──
+  function startGame(){
+    seed=(Date.now?1:1); seed=((performance.now()*1000)|0)%2147483647 || 7; // 시드 다양화
+    enableGyro();
+    reset();
+    el('startScreen').hidden=true; el('overScreen').hidden=true;
+    el('hud').hidden=false; el('jumpBtn').style.display='block';
+    state='play'; recenterPending=true;
+    lastT=performance.now();
+    requestAnimationFrame(loop);
+  }
+  var recenterPending=false;
+  el('startBtn').addEventListener('click',startGame);
+  el('retryBtn').addEventListener('click',startGame);
+
+  function gameOver(reason){
+    state='over';
+    if(score>best){ best=score; try{localStorage.setItem('parkour_best',String(best));}catch(e){} }
+    el('overTitle').textContent = reason==='fall' ? '틈에 빠졌다!' : '부딪혔다!';
+    el('finalScore').textContent=score;
+    el('finalDist').textContent=Math.floor(dist);
+    el('best').textContent=best;
+    el('overScreen').hidden=false; el('hud').hidden=true; el('jumpBtn').style.display='none';
+  }
+
+  // ── 업데이트 ──
+  function update(dt){
+    // 자이로 첫 프레임 보정
+    if(recenterPending && gyroOn){ baseGamma=rawGamma; recenterPending=false; }
+    // 목표 위치
+    if(gyroOn){ targetX = clamp((rawGamma-(baseGamma||0))/22, -1, 1); }
+    else if(pointerX!=null){ targetX = clamp((pointerX/W)*2-1, -1, 1); }
+    if(keyL) targetX=Math.max(-1,targetX-2.4*dt);
+    if(keyR) targetX=Math.min(1,targetX+2.4*dt);
+    player.x += (targetX-player.x)*Math.min(1,dt*9);
+    player.x=clamp(player.x,-1,1);
+
+    // 점프 물리
+    if(jumping){ jumpY += jumpV; jumpV += 3.1*dt; if(jumpY>0){ jumpY=0; jumping=false; jumpV=0; } }
+
+    // 속도/거리 증가
+    speed += dt*0.012; if(speed>1.05) speed=1.05;
+    dist += speed*dt*34;
+    var dz=speed*dt;
+
+    // 엔티티 전진
+    for(var i=0;i<ents.length;i++) ents[i].z -= dz;
+
+    // 생성(가장 가까운 새 장애물 간격 유지)
+    var maxz=0; for(var j=0;j<ents.length;j++) if(ents[j].z>maxz) maxz=ents[j].z;
+    if(maxz < 1.0){ generate(); }
+
+    // 충돌/수집/통과 판정
+    for(var k=ents.length-1;k>=0;k--){
+      var e=ents[k];
+      if(e.type==='coin'){
+        if(!e.got && e.z<0.05 && e.z>-0.05){
+          if(Math.abs(e.x-player.x)<0.22){ e.got=true; score+=1; }
+        }
+        if(e.z<-0.15) ents.splice(k,1);
+      } else if(e.type==='wall'){
+        if(e.z<0.06 && e.z>-0.06 && !e.hit){
+          e.hit=true;
+          if(Math.abs(e.x-player.x) < (e.w*0.5+0.14) && jumpY> -0.35){ return gameOver('hit'); }
+        }
+        if(e.z<-0.2) ents.splice(k,1);
+      } else if(e.type==='gap'){
+        if(e.z<0.05 && e.z>-0.05 && !e.checked){
+          e.checked=true;
+          if(jumpY > -0.30){ return gameOver('fall'); } // 점프 안 했으면 추락
+          else score+=2;
+        }
+        if(e.z<-0.2) ents.splice(k,1);
+      }
+    }
+    el('dist').textContent=Math.floor(dist);
+    el('score').textContent=score;
+  }
+
+  // ── 렌더 ──
+  function drawBg(){
+    var g=ctx.createLinearGradient(0,0,0,horizon());
+    g.addColorStop(0,'#241246'); g.addColorStop(1,'#5b3a6e'); ctx.fillStyle=g; ctx.fillRect(0,0,W,horizon());
+    // 노을
+    var gg=ctx.createRadialGradient(W/2,horizon(),0,W/2,horizon(),W*0.6);
+    gg.addColorStop(0,'rgba(255,140,87,.55)'); gg.addColorStop(1,'rgba(255,140,87,0)');
+    ctx.fillStyle=gg; ctx.fillRect(0,0,W,horizon()+40);
+    // 원경 빌딩 실루엣
+    ctx.fillStyle='#1c1030';
+    var bx=0; seedSil=987654;
+    while(bx<W){ var bw=20+silRnd()*46, bh=20+silRnd()*80; ctx.fillRect(bx,horizon()-bh,bw,bh); bx+=bw+4; }
+    // 지면(하늘 아래)
+    ctx.fillStyle='#0e0720'; ctx.fillRect(0,horizon(),W,H-horizon());
+  }
+  var seedSil=987654; function silRnd(){ seedSil=(seedSil*1103515245+12345)&0x7fffffff; return seedSil/0x7fffffff; }
+
+  function drawRoad(){
+    // 도로(옥상 길) 사다리꼴
+    ctx.beginPath();
+    ctx.moveTo(sx(-1,0),ground()); ctx.lineTo(sx(1,0),ground());
+    ctx.lineTo(sx(1,1),horizon()); ctx.lineTo(sx(-1,1),horizon()); ctx.closePath();
+    var rg=ctx.createLinearGradient(0,horizon(),0,ground());
+    rg.addColorStop(0,'#2a2140'); rg.addColorStop(1,'#3b2f57'); ctx.fillStyle=rg; ctx.fill();
+    // 가장자리 라인
+    ctx.strokeStyle='rgba(127,224,208,.5)'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(sx(-1,0),ground()); ctx.lineTo(sx(-1,1),horizon()); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx(1,0),ground()); ctx.lineTo(sx(1,1),horizon()); ctx.stroke();
+    // 스크롤 가로줄(속도감)
+    var off=(dist*0.06)%1;
+    for(var i=0;i<8;i++){
+      var z=((i+off)/8);
+      ctx.strokeStyle='rgba(255,255,255,'+(0.06+0.10*(1-z))+')'; ctx.lineWidth=1+2*(1-z);
+      var y=proj(z).y;
+      ctx.beginPath(); ctx.moveTo(sx(-1,z),y); ctx.lineTo(sx(1,z),y); ctx.stroke();
+    }
+  }
+
+  function drawEnts(){
+    // 먼 것부터
+    var sorted=ents.slice().sort(function(a,b){return b.z-a.z;});
+    for(var i=0;i<sorted.length;i++){
+      var e=sorted[i]; if(e.z>1.02||e.z<-0.2) continue;
+      var p=proj(e.z);
+      if(e.type==='gap'){
+        var y0=proj(Math.max(0,e.z-0.05)).y, y1=proj(e.z+0.05).y;
+        ctx.fillStyle='#08040f';
+        ctx.beginPath();
+        ctx.moveTo(sx(-1,e.z-0.05),y0); ctx.lineTo(sx(1,e.z-0.05),y0);
+        ctx.lineTo(sx(1,e.z+0.05),y1); ctx.lineTo(sx(-1,e.z+0.05),y1); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle='rgba(255,140,87,.8)'; ctx.lineWidth=2; ctx.stroke();
+      } else if(e.type==='wall'){
+        var cx=sx(e.x,e.z), w=roadHalf(e.z)*e.w, h=60*p.s+10;
+        ctx.fillStyle='#ff5d5d'; roundRect(cx-w/2,p.y-h,w,h,4); ctx.fill();
+        ctx.fillStyle='rgba(0,0,0,.25)'; ctx.fillRect(cx-w/2,p.y-6*p.s,w,6*p.s);
+      } else if(e.type==='coin' && !e.got){
+        var cxx=sx(e.x,e.z), r=9*p.s+2, yy=p.y-24*p.s;
+        ctx.fillStyle='#FFC857'; ctx.beginPath(); ctx.arc(cxx,yy,r,0,7); ctx.fill();
+        ctx.fillStyle='rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(cxx-r*0.3,yy-r*0.3,r*0.35,0,7); ctx.fill();
+      }
+    }
+  }
+
+  function drawPlayer(){
+    var z=0, p=proj(z), cx=sx(player.x,z);
+    var baseY=p.y, jy=jumpY*160; // 화면 점프 오프셋
+    // 그림자
+    ctx.fillStyle='rgba(0,0,0,'+(0.35+0.2*(jumpY))+')';
+    ctx.beginPath(); ctx.ellipse(cx,baseY+6,20+ -jumpY*6,7,0,0,7); ctx.fill();
+    var y=baseY+jy;
+    // 몸
+    ctx.fillStyle='#FF8C57';
+    roundRect(cx-13,y-42,26,34,9); ctx.fill();
+    // 머리
+    ctx.fillStyle='#ffd9c2'; ctx.beginPath(); ctx.arc(cx,y-50,11,0,7); ctx.fill();
+    // 달리는 다리(간단 애니)
+    var t=performance.now()/90;
+    ctx.strokeStyle='#14224F'; ctx.lineWidth=5; ctx.lineCap='round';
+    var sw=jumping?4:Math.sin(t)*8;
+    ctx.beginPath(); ctx.moveTo(cx-5,y-10); ctx.lineTo(cx-7+sw*0.4,y+4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+5,y-10); ctx.lineTo(cx+7-sw*0.4,y+4); ctx.stroke();
+  }
+
+  function roundRect(x,y,w,h,r){ ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    drawBg(); drawRoad(); drawEnts(); drawPlayer();
+    // 기울기 표시(작은 인디케이터)
+    if(state==='play'){
+      var iw=W*0.5, ix=W/2-iw/2, iy=H-24;
+      ctx.fillStyle='rgba(255,255,255,.15)'; roundRect(ix,iy-3,iw,6,3); ctx.fill();
+      ctx.fillStyle='var'; ctx.fillStyle='#7FE0D0';
+      var px=ix+(player.x+1)/2*iw; ctx.beginPath(); ctx.arc(px,iy,7,0,7); ctx.fill();
+    }
+  }
+
+  // ── 루프 ──
+  function loop(now){
+    if(state!=='play'){ render(); return; }
+    var dt=Math.min(0.05,(now-lastT)/1000); lastT=now;
+    update(dt);
+    if(state==='play'){ render(); requestAnimationFrame(loop); }
+    else render();
+  }
+
+  function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+
+  // 초기 렌더(시작 화면 배경)
+  resize(); reset(); render();
+  window.addEventListener('orientationchange',function(){ setTimeout(resize,200); });
+})();
+</script>
+</body>
+</html>
