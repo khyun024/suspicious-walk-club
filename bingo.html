@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#F6F1E3"/>
+<title>관찰 빙고 — 동네 게임 공작소</title>
+<style>
+:root{--bg:#F6F1E3;--ink:#1D1F28;--orange:#FF6B35;--yellow:#FFD23F;--green:#3FA56B;
+  --mut:#6E6755;--white:#fff;
+  font-family:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Helvetica Neue",Arial,sans-serif;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+body{max-width:520px;margin:0 auto;padding:0 16px calc(env(safe-area-inset-bottom) + 40px);}
+
+header{padding:calc(env(safe-area-inset-top) + 22px) 2px 4px;}
+.kick{font-size:11.5px;letter-spacing:.18em;color:var(--orange);font-weight:800;margin:0 0 6px;}
+h1{font-size:30px;font-weight:800;letter-spacing:-.03em;margin:0;}
+.lead{font-size:13px;line-height:1.6;color:var(--mut);margin:8px 0 0;}
+.stat{display:flex;align-items:center;gap:8px;margin:14px 0 12px;}
+.stat .n{background:var(--ink);color:var(--yellow);border-radius:10px;padding:6px 12px;
+  font-size:13px;font-weight:800;}
+.stat .b{background:var(--yellow);color:var(--ink);border:2px solid var(--ink);border-radius:10px;
+  padding:5px 12px;font-size:13px;font-weight:800;display:none;}
+.stat .b.on{display:block;animation:pop .35s;}
+@keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+.cell{position:relative;aspect-ratio:1;border:2.5px solid var(--ink);border-radius:14px;
+  background:var(--white);overflow:hidden;cursor:pointer;
+  box-shadow:3px 3px 0 rgba(29,31,40,.85);transition:transform .06s;}
+.cell:active{transform:translate(2px,2px);box-shadow:1px 1px 0 rgba(29,31,40,.85);}
+.cell .ph{position:absolute;inset:0;background-size:cover;background-position:center;}
+.cell .scrim{position:absolute;inset:0;background:rgba(0,0,0,.30);display:none;}
+.cell.filled .scrim{display:block;}
+.cell .lb{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  padding:8px;text-align:center;font-weight:800;font-size:14.5px;line-height:1.3;
+  letter-spacing:-.01em;word-break:keep-all;}
+.cell.filled .lb{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.85),0 0 12px rgba(0,0,0,.5);
+  font-size:15px;}
+.cell .done{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;
+  background:var(--green);color:#fff;border:2px solid #fff;display:none;
+  align-items:center;justify-content:center;font-size:14px;font-weight:900;}
+.cell.filled .done{display:flex;}
+.cell.center{background:var(--yellow);}
+.cell.center .lb{flex-direction:column;gap:4px;}
+.cell.center .star{font-size:20px;line-height:1;}
+.cell.center.filled .star{text-shadow:0 1px 3px rgba(0,0,0,.85);}
+.cell .edit{position:absolute;top:6px;left:6px;width:28px;height:28px;border-radius:50%;
+  background:var(--ink);color:var(--yellow);border:none;display:flex;align-items:center;
+  justify-content:center;font-size:13px;z-index:3;cursor:pointer;}
+.cell.bingoLine{border-color:var(--orange);box-shadow:3px 3px 0 var(--orange);}
+
+.hint{font-size:12px;color:var(--mut);text-align:center;margin:14px 0 0;line-height:1.6;}
+.reset{display:block;margin:22px auto 0;background:none;border:2px solid var(--ink);
+  border-radius:12px;color:var(--ink);font-family:inherit;font-weight:800;font-size:13px;
+  padding:10px 22px;cursor:pointer;}
+input[type=file]{display:none;}
+
+/* 셀 액션 시트 */
+.sheetBg{position:fixed;inset:0;background:rgba(29,31,40,.55);z-index:50;display:none;
+  align-items:flex-end;justify-content:center;}
+.sheetBg.on{display:flex;}
+.sheet{width:100%;max-width:520px;background:var(--bg);border-radius:22px 22px 0 0;
+  border:2.5px solid var(--ink);border-bottom:none;padding:20px 18px calc(env(safe-area-inset-bottom) + 22px);}
+.sheet .t{font-size:16px;font-weight:800;margin:0 0 14px;text-align:center;}
+.sheet button{display:block;width:100%;margin-top:9px;border-radius:14px;font-family:inherit;
+  font-weight:800;font-size:15.5px;padding:15px;cursor:pointer;border:2px solid var(--ink);}
+.sheet .b1{background:var(--orange);color:#fff;}
+.sheet .b2{background:var(--white);color:var(--ink);}
+.sheet .b3{background:none;border-color:transparent;color:var(--mut);font-weight:700;}
+
+/* 빙고 배너 */
+.banner{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%) rotate(-4deg);z-index:60;
+  background:var(--yellow);border:3px solid var(--ink);border-radius:18px;
+  padding:18px 34px;font-size:34px;font-weight:900;letter-spacing:-.02em;
+  box-shadow:6px 6px 0 var(--ink);display:none;pointer-events:none;}
+.banner.on{display:block;animation:bpop .5s;}
+@keyframes bpop{0%{transform:translate(-50%,-50%) rotate(-4deg) scale(.4)}
+  70%{transform:translate(-50%,-50%) rotate(-4deg) scale(1.1)}
+  100%{transform:translate(-50%,-50%) rotate(-4deg) scale(1)}}
+</style>
+</head>
+<body>
+<header>
+  <p class="kick">동네 게임 공작소</p>
+  <h1>관찰 빙고</h1>
+  <p class="lead">천천히 걸으면서 찾아요. 발견하면 칸을 눌러 사진을 찍어요.
+    가운데 ★칸은 연필을 눌러 나만의 질문을 적어요.</p>
+</header>
+
+<div class="stat">
+  <div class="n"><span id="cnt">0</span> / 9 채움</div>
+  <div class="b" id="lineB">빙고 <span id="lineN">0</span>줄!</div>
+</div>
+
+<div class="grid" id="grid"></div>
+<p class="hint">채운 칸을 다시 누르면 사진을 바꾸거나 지울 수 있어요.<br/>
+  사진은 이 휴대폰 안에만 저장돼요.</p>
+<button class="reset" id="resetBtn">전부 지우고 새 빙고</button>
+
+<input type="file" id="file" accept="image/*" capture="environment"/>
+
+<div class="sheetBg" id="sheetBg">
+  <div class="sheet">
+    <p class="t" id="sheetT"></p>
+    <button class="b1" id="shRetake">사진 다시 찍기</button>
+    <button class="b2" id="shRemove">사진 지우기</button>
+    <button class="b3" id="shClose">닫기</button>
+  </div>
+</div>
+
+<div class="banner" id="banner">빙고!</div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY='workshop_bingo_v1';
+  var LABELS=["그림자","소리","낡은 것","반짝이는 것","★","이상한 흔적","초록 생명","글자와 숫자","구멍과 틈"];
+  var LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  var state={photos:{}, question:""};   // photos: idx→dataURL
+  var pendingIdx=null, sheetIdx=null, lastLineCount=0;
+  var el=function(id){return document.getElementById(id);};
+
+  function load(){
+    try{ var d=JSON.parse(localStorage.getItem(KEY)||'{}');
+      state.photos=d.photos||{}; state.question=d.question||""; }catch(e){}
+  }
+  function save(){
+    try{ localStorage.setItem(KEY,JSON.stringify(state)); }
+    catch(e){ alert('저장 공간이 가득 찼어요. 사진 몇 장을 지워 주세요.'); }
+  }
+
+  function labelFor(i){
+    if(i===4) return state.question || "나만의 질문";
+    return LABELS[i];
+  }
+  function lineCount(){
+    var n=0;
+    LINES.forEach(function(L){ if(L.every(function(i){return !!state.photos[i];})) n++; });
+    return n;
+  }
+  function cellsInLines(){
+    var set={};
+    LINES.forEach(function(L){ if(L.every(function(i){return !!state.photos[i];}))
+      L.forEach(function(i){set[i]=1;}); });
+    return set;
+  }
+
+  function render(){
+    var g=el('grid'); g.innerHTML='';
+    var inLine=cellsInLines();
+    for(var i=0;i<9;i++){
+      (function(idx){
+        var c=document.createElement('div');
+        c.className='cell'+(idx===4?' center':'')+(state.photos[idx]?' filled':'')
+          +(inLine[idx]?' bingoLine':'');
+        var inner='';
+        if(state.photos[idx]) inner+='<div class="ph" style="background-image:url('+state.photos[idx]+')"></div>';
+        inner+='<div class="scrim"></div>';
+        if(idx===4){
+          inner+='<div class="lb"><span class="star">★</span><span>'+esc(labelFor(4))+'</span></div>';
+          inner+='<button class="edit" aria-label="질문 바꾸기">✎</button>';
+        } else {
+          inner+='<div class="lb">'+esc(labelFor(idx))+'</div>';
+        }
+        inner+='<div class="done">✓</div>';
+        c.innerHTML=inner;
+        if(idx===4){
+          c.querySelector('.edit').addEventListener('click',function(e){
+            e.stopPropagation(); editQuestion();
+          });
+        }
+        c.addEventListener('click',function(){ tapCell(idx); });
+        g.appendChild(c);
+      })(i);
+    }
+    el('cnt').textContent=Object.keys(state.photos).length;
+    var n=lineCount();
+    el('lineN').textContent=n;
+    el('lineB').classList.toggle('on',n>0);
+    if(n>lastLineCount){ showBanner(); }
+    lastLineCount=n;
+  }
+  function esc(s){ return String(s).replace(/[<>&"]/g,function(c){
+    return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
+
+  function editQuestion(){
+    var q=prompt('가운데 칸에 넣을 나만의 질문이나 미션을 적어요.\n예) 고양이가 지나간 흔적', state.question);
+    if(q===null) return;
+    state.question=q.trim(); save(); render();
+  }
+
+  function tapCell(i){
+    if(i===4 && !state.question && !state.photos[4]){
+      // 질문이 아직 없으면 먼저 질문부터
+      editQuestion();
+      if(!state.question) return;
+    }
+    if(state.photos[i]){ openSheet(i); }
+    else { pendingIdx=i; el('file').click(); }
+  }
+
+  // 액션 시트 (다시 찍기 / 지우기)
+  function openSheet(i){
+    sheetIdx=i;
+    el('sheetT').textContent='"'+labelFor(i)+'" 칸';
+    el('sheetBg').classList.add('on');
+  }
+  function closeSheet(){ el('sheetBg').classList.remove('on'); sheetIdx=null; }
+  el('shClose').addEventListener('click',closeSheet);
+  el('sheetBg').addEventListener('click',function(e){ if(e.target===this) closeSheet(); });
+  el('shRetake').addEventListener('click',function(){
+    pendingIdx=sheetIdx; closeSheet(); el('file').click();
+  });
+  el('shRemove').addEventListener('click',function(){
+    delete state.photos[sheetIdx]; save(); closeSheet(); render();
+  });
+
+  // 사진 → 축소 → 저장
+  el('file').addEventListener('change',function(e){
+    var f=e.target.files && e.target.files[0];
+    e.target.value='';
+    if(!f || pendingIdx===null) return;
+    var idx=pendingIdx; pendingIdx=null;
+    var url=URL.createObjectURL(f), img=new Image();
+    img.onload=function(){
+      var S=640, w=img.width, h=img.height, sc=S/Math.min(w,h);
+      if(sc>1) sc=1;
+      var cw=Math.round(w*sc), ch=Math.round(h*sc);
+      var c=document.createElement('canvas'); c.width=cw; c.height=ch;
+      c.getContext('2d').drawImage(img,0,0,cw,ch);
+      state.photos[idx]=c.toDataURL('image/jpeg',0.72);
+      URL.revokeObjectURL(url);
+      save(); render();
+    };
+    img.onerror=function(){ URL.revokeObjectURL(url); alert('사진을 불러오지 못했어요. 다시 시도해 주세요.'); };
+    img.src=url;
+  });
+
+  el('resetBtn').addEventListener('click',function(){
+    if(!confirm('사진과 질문을 전부 지우고 새로 시작할까요?')) return;
+    state={photos:{},question:""}; lastLineCount=0; save(); render();
+  });
+
+  var bt=null;
+  function showBanner(){
+    var b=el('banner'); b.classList.remove('on');
+    void b.offsetWidth; b.classList.add('on');
+    clearTimeout(bt); bt=setTimeout(function(){ b.classList.remove('on'); },1800);
+  }
+
+  // 검증용 훅
+  window.__bingo={ fill:function(i,color){
+      var c=document.createElement('canvas'); c.width=80; c.height=80;
+      var x=c.getContext('2d'); x.fillStyle=color||'#888'; x.fillRect(0,0,80,80);
+      state.photos[i]=c.toDataURL(); save(); render(); },
+    setQ:function(q){ state.question=q; save(); render(); },
+    state:function(){ return {n:Object.keys(state.photos).length, lines:lineCount(), q:state.question}; } };
+
+  load(); lastLineCount=lineCount(); render();
+})();
+</script>
+</body>
+</html>
