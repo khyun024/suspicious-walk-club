@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#0E0F14"/>
+<title>사진으로 만드는 산책 교향곡</title>
+<style>
+:root{--bg:#0E0F14;--panel:#171922;--panel2:#1E202B;--ink:#F3F3F5;--soft:#9A9CA8;--dim:#63656F;
+  --line:#262833;--accent:#FF8C57;--mint:#7FE0D0;--rose:#E8A0B0;
+  font-family:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Helvetica Neue",Arial,sans-serif;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+body{max-width:560px;margin:0 auto;padding:0 18px calc(env(safe-area-inset-bottom) + 120px);min-height:100vh;}
+
+header{padding:calc(env(safe-area-inset-top) + 26px) 2px 8px;}
+.kick{font-size:12px;letter-spacing:.2em;color:var(--mint);font-weight:800;margin:0 0 10px;}
+h1{font-size:27px;font-weight:800;letter-spacing:-.03em;line-height:1.2;margin:0;}
+.lead{font-size:14px;line-height:1.75;color:var(--soft);margin:16px 0 0;}
+.lead b{color:var(--ink);font-weight:600;}
+details{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;}
+details summary{font-size:13px;color:var(--mint);font-weight:700;cursor:pointer;list-style:none;}
+details summary::-webkit-details-marker{display:none;}
+details p{font-size:13px;line-height:1.8;color:var(--soft);margin:12px 0 0;}
+
+/* 시각화 오브 */
+.orbWrap{display:flex;justify-content:center;margin:22px 0 6px;}
+#orb{width:150px;height:150px;}
+
+.addBtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+  margin-top:16px;border:2px dashed var(--line);border-radius:18px;background:var(--panel);
+  color:var(--ink);font-weight:800;font-size:16px;padding:20px;cursor:pointer;font-family:inherit;
+  transition:border-color .15s,background .15s;}
+.addBtn:active{background:var(--panel2);border-color:var(--accent);}
+.addBtn .ic{font-size:22px;}
+input[type=file]{display:none;}
+
+.count{font-size:12px;color:var(--dim);margin:18px 2px 8px;font-weight:700;letter-spacing:.02em;}
+
+.cards{display:flex;flex-direction:column;gap:12px;}
+.card{display:flex;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);
+  border-radius:16px;padding:12px;cursor:pointer;transition:border-color .15s,transform .06s;}
+.card:active{transform:scale(.99);}
+.card.playing{border-color:var(--accent);}
+.card .thumb{width:64px;height:64px;border-radius:12px;object-fit:cover;flex:none;background:#000;}
+.card .meta{flex:1;min-width:0;}
+.card .t{font-size:15.5px;font-weight:800;letter-spacing:-.01em;}
+.card .d{font-size:12px;color:var(--soft);margin-top:3px;line-height:1.4;}
+.card .wave{display:flex;align-items:flex-end;gap:2px;height:22px;margin-top:8px;}
+.card .wave i{width:3px;border-radius:2px;background:var(--mint);opacity:.7;}
+.card .play{flex:none;width:36px;height:36px;border-radius:50%;border:1.5px solid var(--line);
+  display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:14px;}
+.card .del{flex:none;width:28px;color:var(--dim);text-align:center;font-size:18px;font-weight:700;}
+
+.empty{text-align:center;color:var(--dim);font-size:13px;line-height:1.7;padding:30px 10px;}
+
+/* 하단 재생바 */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;justify-content:center;
+  padding:12px 16px calc(env(safe-area-inset-bottom) + 14px);
+  background:linear-gradient(to top, var(--bg) 60%, rgba(14,15,20,0));}
+.dockInner{width:100%;max-width:524px;display:flex;gap:10px;}
+.dock button{flex:1;border:none;border-radius:16px;font-family:inherit;font-weight:800;font-size:16px;
+  padding:16px;cursor:pointer;color:#fff;}
+#playAll{background:var(--accent);box-shadow:0 4px 0 #b3572d;flex:2;}
+#playAll:active{transform:translateY(3px);box-shadow:0 1px 0 #b3572d;}
+#playAll[disabled]{opacity:.4;box-shadow:none;}
+#stopAll{background:var(--panel2);border:1px solid var(--line);color:var(--ink);}
+</style>
+</head>
+<body>
+<header>
+  <p class="kick">WALK SYMPHONY</p>
+  <h1>사진으로 만드는<br/>산책 교향곡</h1>
+  <p class="lead">나의 시선으로 포착한 장면들이 <b>예상치 못한 소리와 음악</b>으로 바뀌는 순간.
+    산책하며 담은 사진이 앱의 사운드 모듈레이터를 거쳐 저마다의 파형을 가진다.</p>
+  <details>
+    <summary>어떻게 소리가 되나요?</summary>
+    <p>지도 앱을 끄고 발바닥으로 땅을 느끼며 천천히 걷는다. 담벼락 사이 작은 길을 비집고 들어가고,
+      끝에 산이 걸친 낯선 대로를 정처 없이 걸으며, 효율 뒤에 숨은 입체적인 장면을 눈과 스마트폰으로 포착한다.
+      담은 사진은 색감의 대비, 질감의 입자, 빛과 그늘의 궤적으로 해석되어 소리의 결로 재구성된다.
+      작게 핀 이끼는 잔잔한 앰비언트 리듬이 되고, 비탈에 부서지는 햇살과 뭉게구름은 맑은 잔향이 되어 귀에 울린다.</p>
+  </details>
+</header>
+
+<div class="orbWrap"><canvas id="orb" width="300" height="300"></canvas></div>
+
+<button class="addBtn" id="addBtn"><span class="ic">＋</span> 산책 사진 담기</button>
+<input type="file" id="file" accept="image/*" multiple />
+
+<div class="count" id="count">아직 담은 사진이 없어요</div>
+<div class="cards" id="cards">
+  <div class="empty" id="empty">사진을 담으면 이곳에 소리의 결이 쌓입니다.<br/>카드를 누르면 그 사진의 소리를 들어볼 수 있어요.</div>
+</div>
+
+<div class="dock">
+  <div class="dockInner">
+    <button id="playAll" disabled>산책 교향곡 재생 ▶</button>
+    <button id="stopAll">정지</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var photos=[];           // {id, features, thumb, label}
+  var AC=null, master, reverb, dryGain, analyser, running=false, seqTimer=null, activeNodes=[];
+  var el=function(id){return document.getElementById(id);};
+
+  // ── 오디오 엔진 ──
+  function initAudio(){
+    if(AC) return;
+    var Ctx=window.AudioContext||window.webkitAudioContext;
+    AC=new Ctx();
+    master=AC.createGain(); master.gain.value=0.85;
+    analyser=AC.createAnalyser(); analyser.fftSize=256;
+    master.connect(analyser); analyser.connect(AC.destination);
+    reverb=AC.createConvolver(); reverb.buffer=makeImpulse(3.6,2.4);
+    var rg=AC.createGain(); rg.gain.value=0.9; reverb.connect(rg); rg.connect(master);
+    dryGain=AC.createGain(); dryGain.gain.value=0.8; dryGain.connect(master);
+    window.__reverbIn=reverb;
+  }
+  function ensureRunning(){ initAudio(); if(AC.state==='suspended') AC.resume(); }
+  function makeImpulse(dur,decay){
+    var rate=AC.sampleRate, len=Math.floor(rate*dur), buf=AC.createBuffer(2,len,rate);
+    for(var ch=0;ch<2;ch++){ var d=buf.getChannelData(ch);
+      for(var i=0;i<len;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay); } }
+    return buf;
+  }
+  var SCALE=[0,2,4,7,9]; // 펜타토닉
+  function noteFreq(semi){ return 261.63*Math.pow(2,semi/12); }
+
+  function voice(f, when, dur){
+    var t=when;
+    var rootDeg=Math.floor(f.hue/360*SCALE.length)%SCALE.length;
+    var octShift=(-12)+Math.floor(f.brightness*3)*12; // -12..+24
+    var degs=[0,2,4].map(function(i){ var idx=rootDeg+i; return SCALE[idx%SCALE.length]+Math.floor(idx/SCALE.length)*12; });
+    var vg=AC.createGain(); vg.gain.value=0;
+    var lp=AC.createBiquadFilter(); lp.type='lowpass';
+    lp.frequency.value=380+f.sat*3400+f.brightness*2600; lp.Q.value=0.6;
+    vg.connect(lp);
+    var send=AC.createGain(); send.gain.value=0.22+f.contrast*0.75;
+    lp.connect(dryGain); lp.connect(send); send.connect(reverb);
+    var rel=1.8+f.contrast*3.2;
+    degs.forEach(function(sd,idx){
+      var o=AC.createOscillator();
+      o.type = f.warm>0.08 ? 'triangle' : 'sine';
+      var det=idx===0?0:(idx===1?-4:5);
+      o.frequency.value=noteFreq(sd+octShift)*(1+det*0.0009);
+      var og=AC.createGain(); og.gain.value=idx===0?0.5:0.3;
+      o.connect(og); og.connect(vg);
+      o.start(t); o.stop(t+dur+rel+0.3); activeNodes.push(o);
+    });
+    // 차가운 사진 → 하이 시머, 따뜻한 사진 → 로우 드론
+    if(f.warm<-0.06){
+      var sh=AC.createOscillator(); sh.type='sine';
+      sh.frequency.value=noteFreq(degs[2]+octShift+12);
+      var sg=AC.createGain(); sg.gain.value=0.12; sh.connect(sg);
+      sg.connect(vg); var ss=AC.createGain(); ss.gain.value=0.6; sg.connect(ss); ss.connect(reverb);
+      sh.start(t); sh.stop(t+dur+rel); activeNodes.push(sh);
+    } else if(f.warm>0.12){
+      var dr=AC.createOscillator(); dr.type='sine';
+      dr.frequency.value=noteFreq(degs[0]+octShift-12);
+      var dg=AC.createGain(); dg.gain.value=0.16; dr.connect(dg); dg.connect(vg);
+      dr.start(t); dr.stop(t+dur+rel); activeNodes.push(dr);
+    }
+    var peak=0.5;
+    vg.gain.setValueAtTime(0.0001,t);
+    vg.gain.linearRampToValueAtTime(peak,t+0.45);
+    vg.gain.setValueAtTime(peak,t+dur);
+    vg.gain.exponentialRampToValueAtTime(0.0008,t+dur+rel);
+    // 질감(입자) → 잔잔한 리듬 플럭
+    if(f.texture>0.11){
+      var interval=Math.max(0.24,0.62-f.texture*1.2);
+      var pt=t+0.25, seed=(f.hue*7+f.texture*991)|0;
+      while(pt<t+dur){
+        var pick=degs[(seed=(seed*1103515245+12345)&0x7fffffff)%3];
+        pluck(noteFreq(pick+octShift+12), pt, 0.8+ (f.green*0.4));
+        pt+=interval;
+      }
+    }
+    return vg;
+  }
+  function pluck(freq,t,vel){
+    var o=AC.createOscillator(); o.type='sine'; o.frequency.value=freq;
+    var g=AC.createGain();
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.linearRampToValueAtTime(0.11*vel,t+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0008,t+0.55);
+    o.connect(g); g.connect(dryGain);
+    var s=AC.createGain(); s.gain.value=0.5; g.connect(s); s.connect(reverb);
+    o.start(t); o.stop(t+0.6); activeNodes.push(o);
+  }
+
+  // ── 사진 분석 ──
+  function analyze(img){
+    var N=52, c=document.createElement('canvas'); c.width=N; c.height=N;
+    var cx=c.getContext('2d'); cx.drawImage(img,0,0,N,N);
+    var data=cx.getImageData(0,0,N,N).data;
+    var n=N*N, rs=0,gs=0,bs=0, lum=new Float32Array(n), sats=0, greens=0;
+    for(var i=0,p=0;i<n;i++,p+=4){
+      var r=data[p]/255,g=data[p+1]/255,b=data[p+2]/255;
+      rs+=r; gs+=g; bs+=b;
+      var l=0.299*r+0.587*g+0.114*b; lum[i]=l;
+      var mx=Math.max(r,g,b),mn=Math.min(r,g,b);
+      sats+= mx===0?0:(mx-mn)/mx;
+      if(g>r+0.03 && g>b+0.03) greens++;
+    }
+    var ar=rs/n, ag=gs/n, ab=bs/n;
+    var brightness=(ar*0.299+ag*0.587+ab*0.114);
+    var sat=sats/n;
+    // 색상(hue) 평균 RGB에서
+    var mx=Math.max(ar,ag,ab), mn=Math.min(ar,ag,ab), hue=0, dd=mx-mn;
+    if(dd>0){
+      if(mx===ar) hue=((ag-ab)/dd)%6;
+      else if(mx===ag) hue=(ab-ar)/dd+2;
+      else hue=(ar-ag)/dd+4;
+      hue*=60; if(hue<0)hue+=360;
+    }
+    // 대비: 밝기 표준편차
+    var mean=0; for(var k=0;k<n;k++) mean+=lum[k]; mean/=n;
+    var v=0; for(var k2=0;k2<n;k2++){ var dq=lum[k2]-mean; v+=dq*dq; } v=Math.sqrt(v/n);
+    var contrast=Math.min(1,v*2.6);
+    // 질감: 인접 픽셀 밝기차 평균
+    var tx=0,cnt=0;
+    for(var y=0;y<N;y++) for(var x=0;x<N-1;x++){ tx+=Math.abs(lum[y*N+x]-lum[y*N+x+1]); cnt++; }
+    var texture=Math.min(1,(tx/cnt)*6);
+    var warm=(ar-ab); // -1..1
+    var green=greens/n;
+    return {brightness:brightness,hue:hue,sat:sat,contrast:contrast,texture:texture,warm:warm,green:green,
+      thumb:c.toDataURL('image/jpeg',0.6)};
+  }
+  function labelFor(f){
+    if(f.green>0.34 && f.texture>0.12) return {t:'이끼의 앰비언트',d:'잔잔한 리듬으로 피어난다'};
+    if(f.brightness>0.62 && f.warm>0.08) return {t:'부서지는 햇살',d:'맑은 잔향이 된다'};
+    if(f.brightness>0.6) return {t:'뭉게구름',d:'투명한 잔향으로 울린다'};
+    if(f.contrast>0.52) return {t:'빛과 그늘의 궤적',d:'또렷한 대비의 음이 된다'};
+    if(f.texture>0.2) return {t:'질감의 입자',d:'오돌토돌한 리듬이 된다'};
+    if(f.warm>0.14) return {t:'따뜻한 담벼락',d:'낮은 드론으로 깔린다'};
+    if(f.warm<-0.06) return {t:'차가운 그늘',d:'높은 시머로 반짝인다'};
+    return {t:'낯선 골목의 결',d:'고요한 파형이 된다'};
+  }
+
+  // ── UI ──
+  var idc=0;
+  function addPhoto(f){
+    var lb=labelFor(f);
+    var item={id:++idc,f:f,label:lb};
+    photos.push(item);
+    renderCards();
+  }
+  function bars(f){
+    // 특징 기반 미니 파형(장식)
+    var h=[], seed=(f.hue+f.texture*500)|0;
+    for(var i=0;i<16;i++){ seed=(seed*1103515245+12345)&0x7fffffff;
+      var base=6+ (f.brightness*10) + (seed/0x7fffffff)*(6+f.texture*16);
+      h.push(Math.min(22,base)); }
+    return h;
+  }
+  function renderCards(){
+    var wrap=el('cards');
+    el('empty').style.display = photos.length? 'none':'block';
+    el('count').textContent = photos.length? ('담은 사진 '+photos.length+'개 · 저마다의 소리 결') : '아직 담은 사진이 없어요';
+    el('playAll').disabled = photos.length===0;
+    // 기존 카드(empty 제외) 제거
+    [].slice.call(wrap.querySelectorAll('.card')).forEach(function(c){c.remove();});
+    photos.forEach(function(it){
+      var card=document.createElement('div'); card.className='card'; card.dataset.id=it.id;
+      var bh=bars(it.f).map(function(v){return '<i style="height:'+v+'px"></i>';}).join('');
+      card.innerHTML=
+        '<img class="thumb" src="'+it.f.thumb+'" alt=""/>'+
+        '<div class="meta"><div class="t">'+it.label.t+'</div>'+
+        '<div class="d">'+it.label.d+'</div>'+
+        '<div class="wave">'+bh+'</div></div>'+
+        '<div class="play">▶</div>'+
+        '<div class="del" title="지우기">×</div>';
+      card.querySelector('.del').addEventListener('click',function(e){ e.stopPropagation();
+        photos=photos.filter(function(p){return p.id!==it.id;}); renderCards(); });
+      card.addEventListener('click',function(){ ensureRunning();
+        markPlaying(card); voice(it.f, AC.currentTime+0.02, 2.6); });
+      wrap.appendChild(card);
+    });
+  }
+  function markPlaying(card){
+    card.classList.add('playing'); setTimeout(function(){card.classList.remove('playing');},2600);
+  }
+
+  // ── 교향곡 재생 ──
+  function playAll(){
+    if(!photos.length) return;
+    ensureRunning(); stopAll(true);
+    running=true; el('playAll').textContent='재생 중… ♪';
+    var t=AC.currentTime+0.15, stagger=2.6;
+    photos.forEach(function(it,i){ voice(it.f, t+i*stagger, 3.2); });
+    var total=photos.length*stagger+6;
+    // 부드러운 드론 베드
+    var bed=AC.createOscillator(); bed.type='sine'; bed.frequency.value=noteFreq(-24);
+    var bg=AC.createGain(); bg.gain.value=0; bed.connect(bg); bg.connect(dryGain);
+    bg.gain.linearRampToValueAtTime(0.06,t+2); bg.gain.setValueAtTime(0.06,t+total-3);
+    bg.gain.exponentialRampToValueAtTime(0.001,t+total);
+    bed.start(t); bed.stop(t+total); activeNodes.push(bed);
+    startViz();
+    seqTimer=setTimeout(function(){ running=false; el('playAll').textContent='산책 교향곡 재생 ▶'; },total*1000);
+  }
+  function stopAll(silent){
+    if(seqTimer){ clearTimeout(seqTimer); seqTimer=null; }
+    running=false; el('playAll').textContent='산책 교향곡 재생 ▶';
+    activeNodes.forEach(function(o){ try{o.stop();}catch(e){} });
+    activeNodes=[];
+  }
+  el('addBtn').addEventListener('click',function(){ ensureRunning(); el('file').click(); });
+  el('file').addEventListener('change',function(e){
+    var files=e.target.files; if(!files||!files.length) return;
+    [].slice.call(files).forEach(function(file){
+      var url=URL.createObjectURL(file), img=new Image();
+      img.onload=function(){ addPhoto(analyze(img)); URL.revokeObjectURL(url); };
+      img.onerror=function(){ URL.revokeObjectURL(url); };
+      img.src=url;
+    });
+    e.target.value='';
+  });
+  el('playAll').addEventListener('click',playAll);
+  el('stopAll').addEventListener('click',function(){ stopAll(); });
+
+  // ── 시각화(오브 + 재생 중 파형) ──
+  var orb=el('orb'), octx=orb.getContext('2d'), OW=300;
+  function startViz(){ requestAnimationFrame(drawOrb); }
+  function drawOrb(){
+    octx.clearRect(0,0,OW,OW);
+    var cx=OW/2, cy=OW/2, R=96;
+    var freq=null;
+    if(analyser){ freq=new Uint8Array(analyser.frequencyBinCount); analyser.getByteFrequencyData(freq); }
+    // 링
+    octx.lineWidth=2;
+    var N=64;
+    octx.beginPath();
+    for(var i=0;i<=N;i++){
+      var a=i/N*Math.PI*2;
+      var amp = freq? (freq[i%freq.length]/255):0;
+      var r=R + amp*46 + Math.sin(a*3+Date.now()/600)*4;
+      var x=cx+Math.cos(a)*r, y=cy+Math.sin(a)*r;
+      i===0?octx.moveTo(x,y):octx.lineTo(x,y);
+    }
+    octx.closePath();
+    var g=octx.createLinearGradient(0,0,OW,OW);
+    g.addColorStop(0,'#FF8C57'); g.addColorStop(1,'#7FE0D0');
+    octx.strokeStyle=g; octx.stroke();
+    // 중심 점
+    octx.fillStyle='rgba(127,224,208,.9)'; octx.beginPath(); octx.arc(cx,cy,4,0,7); octx.fill();
+    if(running || (AC&&AC.state==='running')) requestAnimationFrame(drawOrb);
+  }
+  drawOrb();
+
+  // 검증용 훅(테스트 전용, 무해)
+  window.__symphony={ analyze:analyze, addColor:function(r,g,b,noise){
+    var c=document.createElement('canvas'); c.width=80;c.height=80; var x=c.getContext('2d');
+    x.fillStyle='rgb('+r+','+g+','+b+')'; x.fillRect(0,0,80,80);
+    if(noise){ for(var i=0;i<800;i++){ x.fillStyle='rgba('+(r+40)+','+(g+40)+','+(b+40)+',.5)';
+      x.fillRect(Math.random()*80,Math.random()*80,2,2); } }
+    var img=new Image(); img.onload=function(){ addPhoto(analyze(img)); }; img.src=c.toDataURL();
+  }, count:function(){return photos.length;}, play:playAll };
+})();
+</script>
+</body>
+</html>
