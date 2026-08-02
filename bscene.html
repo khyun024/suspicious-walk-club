@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#101311" />
+  <title>B-SCENE | 동네의 다른 장면</title>
+  <style>
+    :root{--bg:#101311;--panel:#171b18;--line:rgba(226,255,92,.22);--text:#f4f6ee;--muted:#abb3a8;--accent:#e2ff5c;--accent-dark:#1a2100;--radius:22px;--shadow:0 24px 70px rgba(0,0,0,.34)}
+    *{box-sizing:border-box}html{background:var(--bg)}body{margin:0;min-height:100svh;background:radial-gradient(circle at 10% 5%,rgba(226,255,92,.08),transparent 26%),radial-gradient(circle at 88% 78%,rgba(114,153,255,.09),transparent 28%),var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Noto Sans KR","Segoe UI",sans-serif;overflow-x:hidden}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.14;background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:26px 26px}
+    .app{width:min(100%,560px);min-height:100svh;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) 17px max(24px,env(safe-area-inset-bottom));display:flex;flex-direction:column}
+    header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:18px}.header-actions{display:flex;align-items:center;gap:8px}.sound-link{width:auto;min-height:38px;padding:9px 12px;border:1px solid rgba(226,255,92,.24);border-radius:999px;color:var(--accent);background:rgba(226,255,92,.06);font-size:12px;font-weight:850;white-space:nowrap}.sound-link[aria-pressed="false"]{color:var(--muted);border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.04)}.cover-sound-note{position:relative;z-index:1;margin-top:15px;color:#9eaa9d;font-size:12px;line-height:1.55}.logo{margin:0;font-size:clamp(34px,11vw,58px);line-height:.88;letter-spacing:-.07em;font-weight:900}.logo span{display:block;margin-top:10px;color:var(--accent);font-size:.27em;line-height:1;letter-spacing:.2em;font-weight:760}.mode{color:var(--muted);font-size:11px;letter-spacing:.12em;white-space:nowrap}
+    .screen{display:none;flex:1;transform-origin:left center}.screen.active{display:flex;flex-direction:column;animation:pageIn .62s cubic-bezier(.2,.72,.2,1) both}.screen.page-out{display:flex;flex-direction:column;position:absolute;inset:0;z-index:5;animation:pageOut .62s cubic-bezier(.55,.05,.45,.95) both;pointer-events:none}.panel{position:relative;overflow:hidden;padding:22px;border:1px solid rgba(255,255,255,.09);border-radius:var(--radius);background:linear-gradient(180deg,rgba(29,35,31,.96),rgba(21,25,22,.98));box-shadow:var(--shadow)}
+    .cover-screen{justify-content:center;padding-bottom:3vh}.cover-book{position:relative;min-height:min(660px,78svh);padding:32px 27px;border:1px solid rgba(226,255,92,.26);border-radius:7px 25px 25px 7px;background:radial-gradient(circle at 78% 16%,rgba(226,255,92,.18),transparent 24%),linear-gradient(145deg,#263126,#111612 70%);box-shadow:-10px 14px 0 #080b09,0 34px 80px rgba(0,0,0,.48);display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+    .cover-book:before{content:"";position:absolute;left:15px;top:0;bottom:0;width:2px;background:rgba(226,255,92,.22);box-shadow:5px 0 0 rgba(0,0,0,.25)}
+    .cover-book:after{content:"";position:absolute;inset:13px;border:1px solid rgba(226,255,92,.12);border-radius:3px 17px 17px 3px;pointer-events:none}
+    .cover-top{position:relative;z-index:1;color:var(--accent);font-size:11px;font-weight:850;letter-spacing:.2em}.cover-title{position:relative;z-index:1;margin:auto 0;font-size:clamp(58px,19vw,96px);line-height:.82;letter-spacing:-.085em;font-weight:950}.cover-title span{display:block;margin-top:21px;color:var(--accent);font-size:.2em;line-height:1.25;letter-spacing:.18em;font-weight:800}.cover-copy{position:relative;z-index:1;max-width:300px;color:#d6ddd3;font-size:15px;line-height:1.7}.cover-page-mark{position:absolute;right:24px;bottom:24px;color:rgba(226,255,92,.6);font-size:12px;font-weight:800;letter-spacing:.12em}
+    .book-page-number{margin-top:18px;text-align:center;color:#778078;font-size:11px;font-weight:800;letter-spacing:.16em}
+    .app.turning{position:relative;overflow:hidden}
+    @keyframes pageIn{0%{opacity:.25;transform:perspective(1200px) rotateY(18deg) translateX(18px)}100%{opacity:1;transform:perspective(1200px) rotateY(0) translateX(0)}}@keyframes pageOut{0%{opacity:1;transform:perspective(1200px) rotateY(0);filter:brightness(1)}100%{opacity:0;transform:perspective(1200px) rotateY(-86deg) translateX(-12%);filter:brightness(.45)}}
+    .step{margin:0 0 13px;color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.16em}h2{margin:0 0 13px;font-size:clamp(26px,7.5vw,37px);line-height:1.18;letter-spacing:-.045em;word-break:keep-all}p{margin:0;color:var(--muted);font-size:16px;line-height:1.72;word-break:keep-all}strong{color:var(--text)}
+    .example{margin-top:20px;padding:17px;border-left:3px solid var(--accent);border-radius:0 16px 16px 0;background:rgba(226,255,92,.055);line-height:1.65}.example small{display:block;margin-bottom:5px;color:var(--accent);font-weight:800;letter-spacing:.08em}
+    .actions{display:grid;gap:10px;margin-top:auto;padding-top:18px}button,.file-label{width:100%;min-height:55px;padding:14px 18px;border:0;border-radius:17px;display:inline-flex;align-items:center;justify-content:center;text-align:center;color:inherit;font:inherit;font-size:16px;font-weight:820;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .15s ease,opacity .15s ease}button:active,.file-label:active{transform:scale(.985)}button:disabled{opacity:.4;cursor:not-allowed}.primary{color:var(--accent-dark);background:var(--accent);box-shadow:0 14px 34px rgba(226,255,92,.13)}.secondary{color:var(--text);border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055)}
+    .perspective-card{position:relative;margin-top:20px;min-height:250px;padding:22px;border:1px solid var(--line);border-radius:24px;background:radial-gradient(circle at 85% 15%,rgba(226,255,92,.16),transparent 25%),linear-gradient(145deg,#252c25,#151915);display:flex;flex-direction:column;justify-content:space-between;transform:rotate(-1deg);box-shadow:0 22px 50px rgba(0,0,0,.22)}.card-tag{width:fit-content;padding:8px 11px;border-radius:999px;color:var(--accent-dark);background:var(--accent);font-size:12px;font-weight:900;letter-spacing:.08em}.prompt-text{margin:24px 0;color:var(--text);font-size:clamp(27px,8vw,38px);line-height:1.25;letter-spacing:-.045em;font-weight:860;word-break:keep-all}.prompt-hint{color:var(--muted);font-size:14px;line-height:1.55}
+    .timer-box{margin-top:18px;padding:18px;border-radius:18px;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.18);text-align:center}.timer{font-variant-numeric:tabular-nums;font-size:clamp(48px,17vw,76px);line-height:1;font-weight:900;letter-spacing:-.06em}.timer-label{margin-top:8px;color:var(--muted);font-size:13px}
+    .file-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}.preview-wrap{position:relative;width:100%;aspect-ratio:4/5;margin-top:18px;overflow:hidden;border:1px dashed rgba(226,255,92,.25);border-radius:20px;background:#121613}.preview-wrap.empty:before{content:"촬영한 SIDE B 장면";position:absolute;inset:0;display:grid;place-items:center;padding:28px;color:var(--muted);font-size:14px;text-align:center}.preview{width:100%;height:100%;display:block;object-fit:cover}
+    .form-grid{display:grid;gap:15px;margin-top:18px}label.input-label{display:grid;gap:8px;color:var(--accent);font-size:13px;font-weight:800}input[type=text],textarea{width:100%;border:1px solid rgba(255,255,255,.12);border-radius:15px;outline:none;padding:14px 15px;color:var(--text);background:rgba(0,0,0,.22);font:inherit;font-size:16px}input[type=text]:focus,textarea:focus{border-color:rgba(226,255,92,.6);box-shadow:0 0 0 3px rgba(226,255,92,.08)}textarea{min-height:92px;resize:vertical;line-height:1.55}
+    .flip-card{width:100%;height:min(680px,74svh);min-height:540px;margin-top:18px;perspective:1200px;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent}.flip-card:focus-visible{border-radius:24px;box-shadow:0 0 0 3px rgba(226,255,92,.35)}.flip-card-inner{position:relative;width:100%;height:100%;transition:transform .72s cubic-bezier(.2,.72,.2,1);transform-style:preserve-3d}.flip-card.flipped .flip-card-inner{transform:rotateY(180deg)}.card-face{position:absolute;inset:0;overflow:hidden;border:1px solid rgba(255,255,255,.14);border-radius:24px;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 26px 60px rgba(0,0,0,.32)}.card-front{display:flex;align-items:center;justify-content:center;padding:30px;background:radial-gradient(circle at 82% 12%,rgba(226,255,92,.22),transparent 27%),#f0f1e8;color:#141713}.a-face-content{width:100%;text-align:center}.a-face-mark{display:inline-flex;padding:8px 11px;border-radius:999px;background:#171a16;color:var(--accent);font-size:11px;font-weight:900;letter-spacing:.14em}.a-face-title{margin:25px 0 13px;font-size:clamp(42px,12vw,68px);line-height:1.04;letter-spacing:-.065em;font-weight:950;word-break:keep-all}.a-face-copy{color:#676e66;font-size:15px;line-height:1.65}.a-face-turn{display:inline-block;margin-top:34px;color:#555d54;font-size:13px;font-weight:800}.card-back{display:flex;flex-direction:column;background:#111511;color:var(--text);transform:rotateY(180deg)}.result-image-wrap{position:relative;height:55%;min-height:260px}.result-image{display:block;width:100%;height:100%;object-fit:cover;background:#c8cdc3}.result-perspective{position:absolute;top:14px;left:14px;max-width:calc(100% - 28px);padding:8px 11px;border-radius:999px;background:var(--accent);color:#161b00;font-size:12px;line-height:1.25;font-weight:900}.back-content{flex:1;display:flex;flex-direction:column;padding:22px;background:radial-gradient(circle at 90% 8%,rgba(226,255,92,.15),transparent 30%),#151a16}.back-message .side-label{color:#b9c5b7}.side-label{color:#6b7169;font-size:11px;font-weight:900;letter-spacing:.14em}.b-title{margin:8px 0 13px;color:var(--accent);font-size:clamp(34px,9vw,52px);line-height:1.05;letter-spacing:-.06em;font-weight:940;word-break:keep-all}.b-note{margin:0;color:#d0d8ce;font-size:15px;line-height:1.65;white-space:pre-wrap;word-break:keep-all}.result-footer{display:flex;justify-content:space-between;gap:12px;margin-top:auto;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);color:#aeb8ac;font-size:11px;font-weight:800;letter-spacing:.04em}.flip-hint{margin-top:14px;text-align:center;color:var(--accent);font-size:13px;font-weight:780}.safety{margin-top:16px;color:#949d93;font-size:12px;line-height:1.65}.toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));z-index:10;transform:translate(-50%,20px);padding:11px 15px;border-radius:999px;color:#101310;background:var(--accent);font-size:13px;font-weight:850;opacity:0;pointer-events:none;transition:.25s ease}.toast.show{opacity:1;transform:translate(-50%,0)}
+    .album-link{width:auto;min-height:38px;padding:9px 12px;border:1px solid rgba(226,255,92,.24);border-radius:999px;color:var(--accent);background:rgba(226,255,92,.06);font-size:12px;font-weight:850;white-space:nowrap}
+    .album-intro{margin-bottom:18px;padding:18px;border:1px solid rgba(226,255,92,.16);border-radius:18px;background:rgba(226,255,92,.045)}
+    .album-count{display:inline-flex;margin-top:13px;padding:7px 10px;border-radius:999px;color:var(--accent-dark);background:var(--accent);font-size:12px;font-weight:900}
+    .album-grid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:18px}
+    .album-empty{padding:44px 20px;border:1px dashed rgba(226,255,92,.28);border-radius:20px;color:var(--muted);text-align:center;line-height:1.75}
+    .album-card-shell{position:relative}
+    .album-flip-card{height:430px;perspective:1300px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .album-flip-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.2,.72,.2,1)}
+    .album-flip-card.flipped .album-flip-inner{transform:rotateY(180deg)}
+    .album-face{position:absolute;inset:0;overflow:hidden;border-radius:22px;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 18px 46px rgba(0,0,0,.28)}
+    .album-front{display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 84% 14%,rgba(226,255,92,.2),transparent 28%),#eef0e7;color:#171a16;text-align:center}
+    .album-back{display:flex;flex-direction:column;transform:rotateY(180deg);background:#121612;color:var(--text)}
+    .album-photo{width:100%;height:235px;display:block;object-fit:cover;background:#cbd0c8}
+    .album-front-body{width:100%;padding:12px}
+    .album-side-label{font-size:11px;font-weight:900;letter-spacing:.14em;color:#6b7169}
+    .album-a-title{margin:18px 0 12px;font-size:34px;line-height:1.12;font-weight:950;letter-spacing:-.055em;word-break:keep-all}
+    .album-a-copy{color:#6f766e;font-size:13px;line-height:1.55}
+    .album-arrow{margin:24px 0 0;color:#626a61;font-size:12px;font-weight:800}
+    .album-back-body{flex:1;display:flex;flex-direction:column;padding:17px}
+    .album-b-title{margin:7px 0 10px;color:var(--accent);font-size:31px;line-height:1.08;font-weight:950;letter-spacing:-.055em;word-break:keep-all}
+    .album-note{color:#d0d7ce;font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:keep-all}
+    .album-meta{padding-top:12px;margin-top:auto;border-top:1px solid rgba(255,255,255,.13);display:flex;justify-content:space-between;gap:10px;color:#aab5a8;font-size:10px;font-weight:760}
+    .album-delete{position:absolute;z-index:4;top:12px;right:12px;width:auto;min-height:36px;padding:8px 11px;border-radius:999px;color:#fff;background:rgba(10,13,11,.72);font-size:12px;backdrop-filter:blur(10px)}
+    .album-hint{margin-top:8px;color:#8e978d;text-align:center;font-size:12px}
+    @media(min-width:720px){.album-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.album-flip-card{height:420px}}
+
+    /* 표지의 작은 빛가루 */
+    .cover-dust{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+    .cover-dust i{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--accent);opacity:0;filter:blur(.2px);animation:dustFloat 7s ease-in-out infinite}
+    .cover-dust i:nth-child(1){left:18%;top:20%;animation-delay:0s}
+    .cover-dust i:nth-child(2){left:76%;top:29%;animation-delay:1.1s}
+    .cover-dust i:nth-child(3){left:31%;top:71%;animation-delay:2.2s}
+    .cover-dust i:nth-child(4){left:83%;top:67%;animation-delay:3.3s}
+    .cover-dust i:nth-child(5){left:55%;top:16%;animation-delay:4.4s}
+    .cover-dust i:nth-child(6){left:12%;top:84%;animation-delay:5.5s}
+    .cover-book{animation:coverBreathe 5.2s ease-in-out infinite}
+
+    /* 시선 카드가 책 속에서 뽑혀 나오는 느낌 */
+    .perspective-card.card-arrive{animation:cardDeal .78s cubic-bezier(.18,.82,.25,1) both}
+    .perspective-card.card-shuffle{animation:cardShuffle .48s ease both}
+    .perspective-card.card-arrive .card-tag,
+    .perspective-card.card-arrive .prompt-text,
+    .perspective-card.card-arrive .prompt-hint{animation:inkAppear .55s ease both}
+    .perspective-card.card-arrive .prompt-text{animation-delay:.12s}
+    .perspective-card.card-arrive .prompt-hint{animation-delay:.22s}
+
+    /* 타이머 둘레를 걷는 작은 발자국 */
+    .timer-box{position:relative;overflow:hidden;isolation:isolate;--walk-progress:0deg}
+    .timer-box>*{position:relative;z-index:2}
+    .timer-orbit{position:absolute;z-index:1;left:50%;top:50%;width:min(84%,250px);aspect-ratio:1;transform:translate(-50%,-50%);border:1px dashed rgba(226,255,92,.17);border-radius:50%;pointer-events:none}
+    .timer-orbit::before{content:"";position:absolute;inset:-1px;border-radius:inherit;background:conic-gradient(rgba(226,255,92,.34) var(--walk-progress),transparent 0);mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 0)}
+    .timer-walker{position:absolute;left:50%;top:-13px;width:26px;height:26px;margin-left:-13px;display:grid;place-items:center;border-radius:50%;color:var(--accent);background:#171c18;box-shadow:0 0 0 5px rgba(226,255,92,.07);font-size:15px;transform-origin:13px calc(50% + min(42vw,125px));animation:walkerBob 1.3s ease-in-out infinite}
+    .timer-box.timer-paused .timer-walker{animation-play-state:paused;opacity:.55}
+
+    /* 발견 순간의 전환 */
+    .discovery-overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;background:rgba(10,14,11,.84);backdrop-filter:blur(8px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s ease,visibility .25s ease}
+    .discovery-overlay.active{opacity:1;visibility:visible}
+    .discovery-message{position:relative;z-index:2;text-align:center;transform:scale(.82);opacity:0}
+    .discovery-overlay.active .discovery-message{animation:discoveryMessage 1.35s cubic-bezier(.2,.8,.2,1) both}
+    .discovery-symbol{display:block;margin-bottom:17px;color:var(--accent);font-size:54px;line-height:1;text-shadow:0 0 35px rgba(226,255,92,.45)}
+    .discovery-message strong{display:block;color:var(--text);font-size:clamp(26px,8vw,42px);line-height:1.25;letter-spacing:-.045em}
+    .discovery-message span:last-child{display:block;margin-top:11px;color:#bbc5b9;font-size:15px}
+    .spark-field{position:absolute;inset:0;overflow:hidden}
+    .spark{position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:50%;background:var(--accent);opacity:0;box-shadow:0 0 14px rgba(226,255,92,.7)}
+    .discovery-overlay.active .spark{animation:sparkBurst 1.05s ease-out both}
+    .spark:nth-child(1){--x:-145px;--y:-90px;animation-delay:.02s}
+    .spark:nth-child(2){--x:120px;--y:-120px;animation-delay:.07s}
+    .spark:nth-child(3){--x:-105px;--y:125px;animation-delay:.12s}
+    .spark:nth-child(4){--x:155px;--y:85px;animation-delay:.17s}
+    .spark:nth-child(5){--x:-20px;--y:-165px;animation-delay:.22s}
+    .spark:nth-child(6){--x:45px;--y:160px;animation-delay:.27s}
+    .spark:nth-child(7){--x:-175px;--y:15px;animation-delay:.32s}
+    .spark:nth-child(8){--x:182px;--y:-15px;animation-delay:.37s}
+
+    /* SIDE B가 공개될 때 사진과 이름이 살아나는 효과 */
+    .flip-card.flipped .result-image{animation:photoAwake .95s cubic-bezier(.2,.72,.2,1) both}
+    .flip-card.flipped .result-perspective{animation:labelDrop .55s .25s ease both}
+    .flip-card.flipped .b-title{animation:titleWrite .7s .28s cubic-bezier(.18,.82,.25,1) both}
+    .flip-card.flipped .b-note{animation:inkAppear .6s .52s ease both}
+
+    /* 앨범에 새 카드가 꽂히는 효과 */
+    .album-card-shell.new-arrival{animation:albumDrop .78s cubic-bezier(.18,.82,.25,1) both}
+    .album-fly-card{position:fixed;z-index:120;width:92px;height:126px;border:2px solid var(--accent);border-radius:13px;background:linear-gradient(145deg,#edf0e5,#bec8b8);box-shadow:0 18px 45px rgba(0,0,0,.42);pointer-events:none;overflow:hidden}
+    .album-fly-card::after{content:"SIDE B";position:absolute;left:9px;bottom:9px;color:#171a16;font-size:10px;font-weight:950;letter-spacing:.09em}
+
+    @keyframes coverBreathe{0%,100%{transform:translateY(0) rotate(-.15deg)}50%{transform:translateY(-4px) rotate(.15deg)}}
+    @keyframes dustFloat{0%{opacity:0;transform:translate(0,10px) scale(.6)}25%{opacity:.42}70%{opacity:.2}100%{opacity:0;transform:translate(13px,-34px) scale(1.1)}}
+    @keyframes cardDeal{0%{opacity:0;transform:translateY(80px) rotate(7deg) scale(.9)}65%{opacity:1;transform:translateY(-7px) rotate(-2.2deg) scale(1.015)}100%{opacity:1;transform:translateY(0) rotate(-1deg) scale(1)}}
+    @keyframes cardShuffle{0%{transform:rotate(-1deg) translateX(0)}25%{transform:rotate(-4deg) translateX(-12px)}55%{transform:rotate(3deg) translateX(12px)}100%{transform:rotate(-1deg) translateX(0)}}
+    @keyframes inkAppear{from{opacity:0;filter:blur(5px);transform:translateY(8px)}to{opacity:1;filter:blur(0);transform:none}}
+    @keyframes walkerBob{0%,100%{margin-top:0}50%{margin-top:-4px}}
+    @keyframes discoveryMessage{0%{opacity:0;transform:scale(.82)}35%{opacity:1;transform:scale(1.06)}100%{opacity:1;transform:scale(1)}}
+    @keyframes sparkBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}20%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) scale(1.3)}}
+    @keyframes photoAwake{0%{opacity:.18;filter:grayscale(1) brightness(.42);transform:scale(1.08)}100%{opacity:1;filter:none;transform:scale(1)}}
+    @keyframes labelDrop{from{opacity:0;transform:translateY(-12px) scale(.92)}to{opacity:1;transform:none}}
+    @keyframes titleWrite{from{opacity:0;letter-spacing:.08em;transform:translateY(15px)}to{opacity:1;letter-spacing:-.06em;transform:none}}
+    @keyframes albumDrop{0%{opacity:0;transform:translateY(-48px) rotate(-3deg) scale(.92)}70%{opacity:1;transform:translateY(7px) rotate(1deg) scale(1.015)}100%{opacity:1;transform:none}}
+
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.screen.page-out{display:none!important}.cover-dust,.timer-orbit,.spark-field{display:none!important}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header id="mainHeader" hidden><h1 class="logo">B-SCENE<span>동네의 다른 장면</span></h1><div class="header-actions"><button id="musicToggleButton" class="sound-link" type="button" aria-pressed="true" aria-label="배경음 끄기">♪ 배경음</button><button id="headerAlbumButton" class="album-link" type="button">나의 앨범</button></div></header>
+
+    <section id="coverScreen" class="screen cover-screen active">
+      <div class="cover-book" role="img" aria-label="B-SCENE 동네의 다른 장면 동화책 표지">
+        <div class="cover-dust" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="cover-top">A STORY HIDDEN IN THE NEIGHBORHOOD</div>
+        <h1 class="cover-title">B-SCENE<span>동네의 다른 장면</span></h1>
+        <div><p class="cover-copy">표지판 뒤에 숨어 있던<br>우리 동네의 두 번째 이야기를 찾아서</p><p class="cover-sound-note">책장을 펼치면 잔잔한 배경음이 함께 시작돼요.</p></div>
+        <span class="cover-page-mark">COVER</span>
+      </div>
+      <div class="actions"><button id="openBookButton" class="primary">책장을 펼쳐볼까요?</button><button id="coverAlbumButton" class="secondary">모아둔 장면을 볼래요</button></div>
+    </section>
+
+    <section id="introScreen" class="screen">
+      <div class="panel"><p class="step">01 / 이야기가 시작되었어요</p><h2>우리 동네의 모든 장소에는 이름이 붙어 있어요.</h2><p>놀이터, 공원, 골목길, 계단, 주차장.<br><br>하지만 표지판에 적힌 이름이 그 장소의 전부는 아닐지도 몰라요.<br><br>놀이터는 강아지에게 아침 산책의 정거장이 되고, 낮은 담장은 고양이에게 가장 높은 전망대가 되기도 하니까요.<br><br>지금부터 평소에는 보이지 않던 동네의 또 다른 장면을 찾아볼까요?</p><div class="example"><small>어딘가에 숨어 있는 장면</small>놀이터 → 강아지들의 아침 산책 정거장<br>낮은 담장 → 고양이의 가장 높은 전망대</div><p class="safety">산책로와 보행 가능한 공간에서만 찾아보세요. 사유지나 위험한 장소에 들어가지 말고, 다른 사람의 얼굴이 촬영되지 않도록 주의해요.</p><div class="book-page-number">― 1 ―</div></div>
+      <div class="actions"><button id="startButton" class="primary">다음 장을 넘겨볼까요?</button></div>
+    </section>
+
+    <section id="cardScreen" class="screen">
+      <div class="panel"><p class="step">02 / 작은 시선이 도착했어요</p><h2>익숙한 동네를 다르게 보여줄 시선 하나를 받았어요.</h2><p>이 시선을 마음속에 넣고 걸어보세요. 평소에는 지나쳤던 장소가 전혀 다른 장면으로 나타날지도 몰라요.</p><article id="perspectiveCard" class="perspective-card"><span id="promptTag" class="card-tag">다른 존재</span><div id="promptText" class="prompt-text">강아지에게 이 장소는 어떤 정거장이 될까요?</div><div id="promptHint" class="prompt-hint">장소의 이름은 잠시 잊고, 누가 어떻게 머무는지 바라보세요.</div></article><div class="book-page-number">― 2 ―</div></div>
+      <div class="actions"><button id="walkButton" class="primary">이 시선을 들고 출발해요</button><button id="rerollButton" class="secondary">다른 시선을 만나볼래요</button></div>
+    </section>
+
+    <section id="walkScreen" class="screen">
+      <div class="panel"><p class="step">03 / 동네 속으로 들어왔어요</p><h2>이제 천천히 걸으며 숨어 있는 장면을 찾아보세요.</h2><p>평소라면 그냥 지나쳤을 곳도 오늘의 시선으로 다시 바라보면 새로운 모습이 나타날 수 있어요.<br><br><strong id="walkPrompt"></strong><br><span id="walkHint" class="prompt-hint"></span></p><div id="timerBox" class="timer-box"><div class="timer-orbit" aria-hidden="true"><span class="timer-walker">🐾</span></div><div id="timer" class="timer">03:00</div><div class="timer-label">3분 동안 찾아보세요. 더 빨리 발견해도 괜찮아요!</div></div><div class="book-page-number">― 3 ―</div></div>
+      <div class="actions"><button id="captureNowButton" class="primary">새로운 장면을 발견했어요!</button><button id="pauseButton" class="secondary">잠깐 멈춰서 둘러볼래요</button></div>
+    </section>
+
+    <section id="captureScreen" class="screen">
+      <div class="panel"><p class="step">04 / 숨은 장면을 발견했어요!</p><h2>찾았군요! 방금 나타난 장면을 사진에 담아주세요.</h2><p>장소 전체가 아니어도 괜찮아요. 상상을 시작하게 한 한 부분만 담아도 좋아요.<br><br><strong id="capturePrompt"></strong><br><span id="captureHint" class="prompt-hint"></span></p><div id="previewWrap" class="preview-wrap empty"><img id="photoPreview" class="preview" alt="촬영한 장면 미리보기" hidden></div><input id="photoInput" class="file-input" type="file" accept="image/*" capture="environment"><label class="file-label secondary" for="photoInput">발견한 장면을 사진에 담아요</label></div>
+      <div class="actions"><button id="writeButton" class="primary" disabled>사진에 담았어요! 이름을 지어볼래요</button></div>
+    </section>
+
+    <section id="writeScreen" class="screen">
+      <div class="panel"><p class="step">05 / 새로운 이름이 떠올랐어요</p><h2>사진 속 장소에는 이미 익숙한 이름이 있어요.</h2><p>하지만 오늘 당신은 그 이름 뒤에 숨어 있던 또 하나의 장면을 발견했어요. 이제 두 장면에 각각 이름을 붙여주세요.</p><div class="form-grid"><label class="input-label">SIDE A · 사람들이 평소에 부르는 이름<input id="aTitleInput" type="text" maxlength="40" placeholder="예: 어린이 놀이공원"></label><label class="input-label">SIDE B · 내가 새롭게 발견한 이름<input id="bTitleInput" type="text" maxlength="40" placeholder="예: 강아지들의 아침 산책 정거장"></label><label class="input-label">이 장면을 발견한 이야기 · 선택<textarea id="noteInput" maxlength="120" placeholder="어떤 모습 때문에 새로운 장면으로 보였나요?"></textarea></label><label class="input-label">장면을 발견한 사람 · 선택<input id="finderInput" type="text" maxlength="20" placeholder="예: 예지"></label></div></div>
+      <div class="actions"><button id="makeCardButton" class="primary" disabled>새로운 이름을 기록해요</button></div>
+    </section>
+
+    <section id="resultScreen" class="screen">
+      <div class="panel"><p class="step">06 / 이야기가 완성되었어요</p><h2>동네에 새로운 이름 하나가 태어났어요!</h2><p id="resultStory">평소의 이름 뒤에 숨어 있던 장면을 발견했어요. 카드를 눌러 새롭게 지은 이름을 만나보세요.</p><div id="flipCard" class="flip-card" role="button" tabindex="0" aria-pressed="false" aria-label="카드를 뒤집어 촬영한 SIDE B 장면 보기"><div class="flip-card-inner"><article class="card-face card-front"><div class="a-face-content"><span class="a-face-mark">SIDE A</span><div id="resultATitle" class="a-face-title"></div><p class="a-face-copy">사람들이 평소에 부르는<br>이 장소의 익숙한 이름이에요.</p><span class="a-face-turn">뒤집으면 내가 발견한 장면이 나타나요 ↻</span></div></article><article class="card-face card-back"><div class="result-image-wrap"><img id="resultImage" class="result-image" alt="새롭게 발견한 SIDE B 장면"><div id="resultPerspective" class="result-perspective"></div></div><div class="back-content"><div class="back-message"><div class="side-label">SIDE B · 사진 속에서 발견한 이름</div><div id="resultBTitle" class="b-title"></div><p id="resultNote" class="b-note"></p></div><div class="result-footer"><span>이 사진은 SIDE B의 장면이에요</span><span id="resultFinder"></span></div></div></article></div></div><p id="flipHint" class="flip-hint">카드를 눌러 뒤집어보세요 ↻</p></div>
+      <div class="actions"><button id="albumButton" class="primary">나의 B-SCENE 앨범 보기</button><button id="downloadButton" class="secondary">이 카드만 사진으로 저장해요</button><button id="restartButton" class="secondary">또 다른 장면을 찾으러 가요</button></div>
+    </section>
+
+    <section id="albumScreen" class="screen">
+      <div class="panel">
+        <p class="step">07 / 발견한 장면들이 모였어요</p>
+        <h2>나의 B-SCENE 앨범</h2>
+        <div class="album-intro">
+          <p>앞면에는 장소의 원래 이름이, 뒷면에는 내가 촬영한 장면과 새롭게 지은 이름이 담겨 있어요. 카드를 눌러 뒤집어보세요.</p>
+          <span id="albumCount" class="album-count">0개의 장면</span>
+        </div>
+        <div id="albumGrid" class="album-grid"></div>
+        <div class="book-page-number">― ALBUM ―</div>
+      </div>
+      <div class="actions"><button id="albumRestartButton" class="primary">새로운 장면을 더 찾아요</button><button id="albumCoverButton" class="secondary">표지로 돌아가요</button></div>
+    </section>
+  </main>
+  <div id="discoveryOverlay" class="discovery-overlay" aria-hidden="true">
+    <div class="spark-field" aria-hidden="true"><i class="spark"></i><i class="spark"></i><i class="spark"></i><i class="spark"></i><i class="spark"></i><i class="spark"></i><i class="spark"></i><i class="spark"></i></div>
+    <div class="discovery-message">
+      <span class="discovery-symbol">✦</span>
+      <strong>숨어 있던 장면을 발견했어요!</strong>
+      <span>이제 그 장면을 사진에 담아볼까요?</span>
+    </div>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const prompts=[
+      {
+        tag:"강아지의 산책",
+        text:"강아지가 산책하다 꼭 멈춰 설 것 같은 곳을 찾아보세요.",
+        hint:"기둥 아래, 화단 가장자리, 골목 모서리처럼 냄새를 천천히 읽을 것 같은 장소를 찍어보세요."
+      },
+      {
+        tag:"고양이의 전망대",
+        text:"고양이가 동네를 내려다볼 작은 전망대를 찾아보세요.",
+        hint:"낮은 담장, 계단 끝, 실외기나 난간처럼 고양이가 살짝 올라앉을 만한 곳을 찍어보세요."
+      },
+      {
+        tag:"새의 쉼터",
+        text:"새가 날아오다 잠깐 쉬어 갈 의자 같은 곳을 찾아보세요.",
+        hint:"전깃줄, 난간, 표지판 위, 지붕 모서리처럼 새 한 마리가 앉을 자리를 찍어보세요."
+      },
+      {
+        tag:"비 오는 날",
+        text:"갑자기 비가 내릴 때 작은 지붕이 되어줄 곳을 찾아보세요.",
+        hint:"처마 밑, 간판 아래, 나무 아래처럼 한 사람이 잠시 비를 피할 수 있는 곳을 찍어보세요."
+      },
+      {
+        tag:"작아진 나",
+        text:"내가 손바닥만큼 작아졌을 때 커다란 문이 될 틈을 찾아보세요.",
+        hint:"배수구, 벽의 틈, 화분 사이, 계단 아래처럼 작은 존재가 드나들 만한 입구를 찍어보세요."
+      },
+      {
+        tag:"비밀기지",
+        text:"아이들이 비밀기지라고 부를 만한 구석을 찾아보세요.",
+        hint:"계단 아래, 울타리 사이, 나무 뒤처럼 몸이나 마음을 살짝 숨길 수 있는 곳을 찍어보세요."
+      },
+      {
+        tag:"동네의 무대",
+        text:"누군가 그 위에 서면 공연이 시작될 것 같은 자리를 찾아보세요.",
+        hint:"낮은 단, 계단참, 빈 벤치 앞처럼 한 사람이 서고 다른 사람들이 바라볼 수 있는 곳을 찍어보세요."
+      },
+      {
+        tag:"기다리는 자리",
+        text:"누군가를 기다리는 한 장면이 떠오르는 자리를 찾아보세요.",
+        hint:"가게 앞 의자, 골목 입구, 담장 옆처럼 한 사람이 잠시 멈춰 서 있을 만한 곳을 찍어보세요."
+      },
+      {
+        tag:"작은 강",
+        text:"비가 오면 작은 강이나 호수가 될 것 같은 바닥을 찾아보세요.",
+        hint:"배수로, 움푹 팬 보도블록, 경사진 길처럼 물이 흐르거나 고일 자리를 찍어보세요."
+      },
+      {
+        tag:"식물의 영토",
+        text:"식물이 조금씩 자기 자리를 넓혀가는 장면을 찾아보세요.",
+        hint:"보도블록 틈의 풀, 벽을 타는 덩굴, 오래된 화분처럼 식물이 도시를 차지하는 모습을 찍어보세요."
+      },
+      {
+        tag:"이야기의 입구",
+        text:"누군가 금방이라도 나타날 것 같은 골목의 입구를 찾아보세요.",
+        hint:"모퉁이, 열린 문, 계단 위처럼 다음 장면이 이어질 것 같은 방향을 찍어보세요."
+      },
+      {
+        tag:"밤의 등대",
+        text:"밤이 되면 길을 밝혀주는 작은 등대가 될 빛을 찾아보세요.",
+        hint:"가게 간판, 창문 불빛, 가로등이 비춘 벽처럼 어두운 길에서 눈에 띌 빛을 찍어보세요."
+      }
+    ];
+    const ALBUM_KEY="bSceneAlbumV1";
+    const state={prompt:null,photo:null,timerSeconds:180,timerId:null,timerRunning:false,currentCardId:null,album:loadAlbum(),musicEnabled:true,audioContext:null,musicMaster:null,musicTimer:null,airSource:null};
+    const screens={cover:document.getElementById("coverScreen"),intro:document.getElementById("introScreen"),card:document.getElementById("cardScreen"),walk:document.getElementById("walkScreen"),capture:document.getElementById("captureScreen"),write:document.getElementById("writeScreen"),result:document.getElementById("resultScreen"),album:document.getElementById("albumScreen")};
+    const app=document.querySelector(".app"),mainHeader=document.getElementById("mainHeader");
+    let currentScreen="cover",isTurning=false;
+    const promptTag=document.getElementById("promptTag"),promptText=document.getElementById("promptText"),promptHint=document.getElementById("promptHint"),walkPrompt=document.getElementById("walkPrompt"),walkHint=document.getElementById("walkHint"),capturePrompt=document.getElementById("capturePrompt"),captureHint=document.getElementById("captureHint"),timerEl=document.getElementById("timer"),pauseButton=document.getElementById("pauseButton"),photoInput=document.getElementById("photoInput"),previewWrap=document.getElementById("previewWrap"),photoPreview=document.getElementById("photoPreview"),writeButton=document.getElementById("writeButton"),aTitleInput=document.getElementById("aTitleInput"),bTitleInput=document.getElementById("bTitleInput"),noteInput=document.getElementById("noteInput"),finderInput=document.getElementById("finderInput"),makeCardButton=document.getElementById("makeCardButton"),toast=document.getElementById("toast"),albumGrid=document.getElementById("albumGrid"),albumCount=document.getElementById("albumCount"),musicToggleButton=document.getElementById("musicToggleButton"),perspectiveCard=document.getElementById("perspectiveCard"),timerBox=document.getElementById("timerBox"),discoveryOverlay=document.getElementById("discoveryOverlay");
+    function showScreen(name){
+      if(isTurning||name===currentScreen)return;
+      const current=screens[currentScreen],next=screens[name];
+      isTurning=true;
+      app.classList.add("turning");
+      current.classList.remove("active");
+      current.classList.add("page-out");
+      mainHeader.hidden=name==="cover";
+      setTimeout(()=>{
+        current.classList.remove("page-out");
+        Object.values(screens).forEach(s=>s.classList.remove("active"));
+        next.classList.add("active");
+        currentScreen=name;
+        window.scrollTo({top:0,behavior:"auto"});
+        setTimeout(()=>{app.classList.remove("turning");isTurning=false},620);
+      },560);
+    }
+    function updateMusicButton(){
+      const playing=state.musicEnabled&&state.audioContext&&state.audioContext.state!=="closed";
+      musicToggleButton.setAttribute("aria-pressed",String(state.musicEnabled));
+      musicToggleButton.setAttribute("aria-label",state.musicEnabled?"배경음 끄기":"배경음 켜기");
+      musicToggleButton.textContent=state.musicEnabled?"♪ 배경음":"♪ 꺼짐";
+    }
+    function createAirTexture(ctx,master){
+      const seconds=4;
+      const buffer=ctx.createBuffer(1,ctx.sampleRate*seconds,ctx.sampleRate);
+      const data=buffer.getChannelData(0);
+      let last=0;
+      for(let i=0;i<data.length;i++){
+        const white=Math.random()*2-1;
+        last=last*.985+white*.015;
+        data[i]=last*.35;
+      }
+      const source=ctx.createBufferSource();
+      source.buffer=buffer;
+      source.loop=true;
+      const filter=ctx.createBiquadFilter();
+      filter.type="lowpass";
+      filter.frequency.value=700;
+      const gain=ctx.createGain();
+      gain.gain.value=.035;
+      source.connect(filter).connect(gain).connect(master);
+      source.start();
+      state.airSource=source;
+    }
+    function playMusicNote(frequency,start,duration,volume=.035){
+      const ctx=state.audioContext;
+      if(!ctx||!state.musicMaster)return;
+      const osc=ctx.createOscillator();
+      const overtone=ctx.createOscillator();
+      const gain=ctx.createGain();
+      const overtoneGain=ctx.createGain();
+      osc.type="sine";
+      overtone.type="sine";
+      osc.frequency.setValueAtTime(frequency,start);
+      overtone.frequency.setValueAtTime(frequency*2,start);
+      gain.gain.setValueAtTime(.0001,start);
+      gain.gain.exponentialRampToValueAtTime(volume,start+.08);
+      gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
+      overtoneGain.gain.setValueAtTime(.0001,start);
+      overtoneGain.gain.exponentialRampToValueAtTime(volume*.12,start+.06);
+      overtoneGain.gain.exponentialRampToValueAtTime(.0001,start+duration*.7);
+      osc.connect(gain).connect(state.musicMaster);
+      overtone.connect(overtoneGain).connect(state.musicMaster);
+      osc.start(start);
+      overtone.start(start);
+      osc.stop(start+duration+.05);
+      overtone.stop(start+duration+.05);
+    }
+    function scheduleMusicPhrase(){
+      if(!state.musicEnabled||!state.audioContext)return;
+      const ctx=state.audioContext;
+      const base=ctx.currentTime+.08;
+      const phrase=[
+        [261.63,0,2.4],[329.63,.9,2.1],[392,1.8,2.4],
+        [293.66,3.4,2.4],[349.23,4.3,2.1],[440,5.2,2.5],
+        [261.63,6.8,2.8],[392,7.7,2.4]
+      ];
+      phrase.forEach(([freq,offset,duration],index)=>{
+        playMusicNote(freq,base+offset,duration,index%3===0?.035:.026);
+      });
+    }
+    async function startBackgroundMusic(){
+      if(!state.musicEnabled)return;
+      try{
+        const AudioCtx=window.AudioContext||window.webkitAudioContext;
+        if(!AudioCtx){
+          state.musicEnabled=false;
+          updateMusicButton();
+          return;
+        }
+        if(!state.audioContext||state.audioContext.state==="closed"){
+          const ctx=new AudioCtx();
+          const master=ctx.createGain();
+          master.gain.value=.0001;
+          master.connect(ctx.destination);
+          state.audioContext=ctx;
+          state.musicMaster=master;
+          createAirTexture(ctx,master);
+          master.gain.exponentialRampToValueAtTime(.72,ctx.currentTime+1.4);
+          scheduleMusicPhrase();
+          clearInterval(state.musicTimer);
+          state.musicTimer=setInterval(scheduleMusicPhrase,9600);
+        }else{
+          await state.audioContext.resume();
+          state.musicMaster.gain.cancelScheduledValues(state.audioContext.currentTime);
+          state.musicMaster.gain.setValueAtTime(Math.max(.0001,state.musicMaster.gain.value),state.audioContext.currentTime);
+          state.musicMaster.gain.exponentialRampToValueAtTime(.72,state.audioContext.currentTime+.7);
+        }
+        updateMusicButton();
+      }catch(error){
+        console.warn("배경음을 시작하지 못했습니다.",error);
+        state.musicEnabled=false;
+        updateMusicButton();
+        showToast("이 브라우저에서는 배경음을 재생하지 못했어요.");
+      }
+    }
+    function pauseBackgroundMusic(){
+      if(!state.audioContext||!state.musicMaster)return;
+      const now=state.audioContext.currentTime;
+      state.musicMaster.gain.cancelScheduledValues(now);
+      state.musicMaster.gain.setValueAtTime(Math.max(.0001,state.musicMaster.gain.value),now);
+      state.musicMaster.gain.exponentialRampToValueAtTime(.0001,now+.45);
+      setTimeout(()=>{
+        if(state.audioContext&&state.audioContext.state==="running"&&!state.musicEnabled){
+          state.audioContext.suspend().catch(()=>{});
+        }
+      },520);
+    }
+    function toggleBackgroundMusic(){
+      state.musicEnabled=!state.musicEnabled;
+      if(state.musicEnabled){
+        startBackgroundMusic();
+        showToast("잔잔한 배경음을 다시 틀었어요.");
+      }else{
+        pauseBackgroundMusic();
+        updateMusicButton();
+        showToast("배경음을 잠시 껐어요.");
+      }
+    }
+    function animatePerspectiveCard(mode="arrive"){
+      perspectiveCard.classList.remove("card-arrive","card-shuffle");
+      void perspectiveCard.offsetWidth;
+      perspectiveCard.classList.add(mode==="shuffle"?"card-shuffle":"card-arrive");
+    }
+    function playRevealChime(){
+      const ctx=state.audioContext;
+      if(!ctx||!state.musicEnabled)return;
+      const now=ctx.currentTime+.02;
+      [659.25,783.99,987.77].forEach((frequency,index)=>{
+        const oscillator=ctx.createOscillator();
+        const gain=ctx.createGain();
+        oscillator.type="sine";
+        oscillator.frequency.setValueAtTime(frequency,now+index*.09);
+        gain.gain.setValueAtTime(.0001,now+index*.09);
+        gain.gain.exponentialRampToValueAtTime(.055,now+index*.09+.025);
+        gain.gain.exponentialRampToValueAtTime(.0001,now+index*.09+.7);
+        oscillator.connect(gain).connect(ctx.destination);
+        oscillator.start(now+index*.09);
+        oscillator.stop(now+index*.09+.75);
+      });
+    }
+    function revealDiscovery(){
+      clearInterval(state.timerId);
+      state.timerRunning=false;
+      timerBox.classList.add("timer-paused");
+      discoveryOverlay.classList.add("active");
+      discoveryOverlay.setAttribute("aria-hidden","false");
+      playRevealChime();
+      setTimeout(()=>{
+        discoveryOverlay.classList.remove("active");
+        discoveryOverlay.setAttribute("aria-hidden","true");
+        showScreen("capture");
+      },1450);
+    }
+    function flyCardToAlbum(){
+      if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+        showToast("새로운 장면이 앨범에 저장되었어요!");
+        return;
+      }
+      const target=document.getElementById("headerAlbumButton");
+      const sourceCard=document.getElementById("flipCard");
+      if(!target||!sourceCard||currentScreen!=="result")return;
+      const from=sourceCard.getBoundingClientRect();
+      const to=target.getBoundingClientRect();
+      const mini=document.createElement("div");
+      mini.className="album-fly-card";
+      mini.style.left=`${from.left+from.width/2-46}px`;
+      mini.style.top=`${from.top+Math.min(90,from.height*.2)}px`;
+      document.body.appendChild(mini);
+      const dx=to.left+to.width/2-(from.left+from.width/2);
+      const dy=to.top+to.height/2-(from.top+Math.min(90,from.height*.2));
+      const animation=mini.animate([
+        {transform:"translate(0,0) rotate(-3deg) scale(1)",opacity:0},
+        {transform:"translate(0,0) rotate(-3deg) scale(1)",opacity:1,offset:.12},
+        {transform:`translate(${dx*.55}px,${dy*.4}px) rotate(5deg) scale(.72)`,opacity:1,offset:.58},
+        {transform:`translate(${dx}px,${dy}px) rotate(12deg) scale(.22)`,opacity:.1}
+      ],{duration:1050,easing:"cubic-bezier(.18,.82,.25,1)",fill:"forwards"});
+      animation.onfinish=()=>{
+        mini.remove();
+        target.animate([{transform:"scale(1)"},{transform:"scale(1.14)"},{transform:"scale(1)"}],{duration:380,easing:"ease"});
+        showToast("새로운 장면이 앨범에 저장되었어요!");
+      };
+    }
+    function pickPrompt(mode="arrive"){
+      let next;
+      do{next=prompts[Math.floor(Math.random()*prompts.length)]}while(prompts.length>1&&state.prompt===next);
+      state.prompt=next;
+      promptTag.textContent=next.tag;
+      promptText.textContent=next.text;
+      promptHint.textContent=next.hint;
+      walkPrompt.textContent=next.text;
+      walkHint.textContent=next.hint;
+      capturePrompt.textContent=next.text;
+      captureHint.textContent=next.hint;
+      animatePerspectiveCard(mode);
+    }
+    function formatTime(t){return `${String(Math.floor(t/60)).padStart(2,"0")}:${String(t%60).padStart(2,"0")}`}
+    function updateTimer(){
+      timerEl.textContent=formatTime(state.timerSeconds);
+      const elapsed=180-state.timerSeconds;
+      const degrees=Math.max(0,Math.min(360,(elapsed/180)*360));
+      timerBox.style.setProperty("--walk-progress",`${degrees}deg`);
+      const walker=timerBox.querySelector(".timer-walker");
+      if(walker)walker.style.transform=`rotate(${degrees}deg)`;
+    }
+    function startTimer(){clearInterval(state.timerId);state.timerRunning=true;timerBox.classList.remove("timer-paused");pauseButton.textContent="잠깐 멈춰서 둘러볼래요";state.timerId=setInterval(()=>{if(state.timerSeconds>0){state.timerSeconds--;updateTimer()}else{clearInterval(state.timerId);state.timerRunning=false;pauseButton.textContent="다시 걸어볼래요";showToast("3분이 지났어요. 아직 못 찾았다면 천천히 더 둘러봐도 좋아요!")}},1000)}
+    function toggleTimer(){if(state.timerRunning){clearInterval(state.timerId);state.timerRunning=false;timerBox.classList.add("timer-paused");pauseButton.textContent="다시 걸어볼래요"}else startTimer()}
+    function readImage(file){
+      if(!file||!file.type.startsWith("image/"))return;
+      const reader=new FileReader();
+      reader.onload=event=>{
+        const image=new Image();
+        image.onload=()=>{
+          const maxSize=1100;
+          const scale=Math.min(1,maxSize/Math.max(image.width,image.height));
+          const canvas=document.createElement("canvas");
+          canvas.width=Math.max(1,Math.round(image.width*scale));
+          canvas.height=Math.max(1,Math.round(image.height*scale));
+          canvas.getContext("2d").drawImage(image,0,0,canvas.width,canvas.height);
+          state.photo=canvas.toDataURL("image/jpeg",.76);
+          photoPreview.src=state.photo;
+          photoPreview.hidden=false;
+          previewWrap.classList.remove("empty");
+          writeButton.disabled=false;
+        };
+        image.onerror=()=>showToast("사진을 불러오지 못했어요. 다른 사진으로 다시 시도해주세요.");
+        image.src=event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+    function loadAlbum(){
+      try{
+        const saved=JSON.parse(localStorage.getItem(ALBUM_KEY)||"[]");
+        return Array.isArray(saved)?saved:[];
+      }catch(error){
+        console.warn("앨범 불러오기 실패",error);
+        return [];
+      }
+    }
+    function persistAlbum(){
+      state.album=state.album.slice(0,20);
+      try{
+        localStorage.setItem(ALBUM_KEY,JSON.stringify(state.album));
+        return true;
+      }catch(error){
+        if(state.album.length>1){
+          state.album.pop();
+          try{
+            localStorage.setItem(ALBUM_KEY,JSON.stringify(state.album));
+            showToast("저장 공간을 위해 가장 오래된 카드 한 장을 정리했어요.");
+            return true;
+          }catch(secondError){
+            console.warn("앨범 저장 실패",secondError);
+          }
+        }
+        showToast("이 브라우저에서는 앨범을 저장하지 못했어요.");
+        return false;
+      }
+    }
+    function saveCurrentCard(){
+      const card={
+        id:String(Date.now())+"-"+Math.random().toString(16).slice(2),
+        photo:state.photo,
+        aTitle:aTitleInput.value.trim(),
+        bTitle:bTitleInput.value.trim(),
+        note:noteInput.value.trim()||"익숙한 장소를 다시 바라보다가 전에 없던 장면을 발견했어요.",
+        finder:finderInput.value.trim()||"익명",
+        promptTag:state.prompt.tag,
+        promptText:state.prompt.text,
+        createdAt:new Date().toISOString()
+      };
+      state.album.unshift(card);
+      if(persistAlbum()){
+        state.currentCardId=card.id;
+        return card;
+      }
+      return null;
+    }
+    function escapeHTML(value){
+      return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[char]));
+    }
+    function renderAlbum(){
+      albumGrid.innerHTML="";
+      albumCount.textContent=`${state.album.length}개의 장면`;
+      if(!state.album.length){
+        albumGrid.innerHTML='<div class="album-empty">아직 앨범이 비어 있어요.<br>동네를 걸으며 첫 번째 SIDE B를 발견해볼까요?</div>';
+        return;
+      }
+      state.album.forEach(card=>{
+        const shell=document.createElement("article");
+        shell.className="album-card-shell";
+        if(card.id===state.currentCardId)shell.classList.add("new-arrival");
+        const date=new Date(card.createdAt);
+        const dateText=Number.isNaN(date.getTime())?"발견한 날":date.toLocaleDateString("ko-KR",{month:"long",day:"numeric"});
+        shell.innerHTML=`
+          <button class="album-delete" type="button" aria-label="${escapeHTML(card.bTitle)} 카드 삭제">삭제</button>
+          <div class="album-flip-card" role="button" tabindex="0" aria-pressed="false" aria-label="SIDE A와 SIDE B 카드를 뒤집어 보기">
+            <div class="album-flip-inner">
+              <div class="album-face album-front">
+                <div class="album-front-body">
+                  <div class="album-side-label">SIDE A · 원래 알려진 이름</div>
+                  <div class="album-a-title">${escapeHTML(card.aTitle)}</div>
+                  <div class="album-a-copy">이 장소가 평소에 불리던 이름이에요.</div>
+                  <div class="album-arrow">뒤집으면 내가 촬영한 SIDE B가 나타나요 ↻</div>
+                </div>
+              </div>
+              <div class="album-face album-back">
+                <img class="album-photo" src="${card.photo}" alt="${escapeHTML(card.bTitle)}이라고 이름 붙인 SIDE B 장면">
+                <div class="album-back-body">
+                  <div class="album-side-label" style="color:#b8c3b6">SIDE B · 사진 속에서 발견한 이름</div>
+                  <div class="album-b-title">${escapeHTML(card.bTitle)}</div>
+                  <div class="album-note">${escapeHTML(card.note)}</div>
+                  <div class="album-meta"><span>${escapeHTML(card.promptTag)}</span><span>${escapeHTML(card.finder)} · ${dateText}</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="album-hint">카드를 눌러 앞면과 뒷면을 확인해보세요.</div>`;
+        const flip=shell.querySelector(".album-flip-card");
+        const toggle=()=>{
+          flip.classList.toggle("flipped");
+          flip.setAttribute("aria-pressed",String(flip.classList.contains("flipped")));
+        };
+        flip.addEventListener("click",toggle);
+        flip.addEventListener("keydown",event=>{
+          if(event.key==="Enter"||event.key===" "){
+            event.preventDefault();
+            toggle();
+          }
+        });
+        shell.querySelector(".album-delete").addEventListener("click",event=>{
+          event.stopPropagation();
+          state.album=state.album.filter(item=>item.id!==card.id);
+          persistAlbum();
+          renderAlbum();
+          showToast("앨범에서 카드를 꺼냈어요.");
+        });
+        albumGrid.appendChild(shell);
+      });
+    }
+    function openAlbum(){
+      state.album=loadAlbum();
+      renderAlbum();
+      showScreen("album");
+      setTimeout(()=>{state.currentCardId=null},1500);
+    }
+    function validateTitles(){makeCardButton.disabled=!aTitleInput.value.trim()||!bTitleInput.value.trim()}
+    function buildResult(){
+      const aName=aTitleInput.value.trim(),bName=bTitleInput.value.trim();
+      document.getElementById("resultImage").src=state.photo;
+      document.getElementById("resultPerspective").textContent=`${state.prompt.tag} · ${state.prompt.text}`;
+      document.getElementById("resultATitle").textContent=aName;
+      document.getElementById("resultBTitle").textContent=bName;
+      document.getElementById("resultNote").textContent=noteInput.value.trim()||"익숙한 장소를 다시 바라보다가 전에 없던 장면을 발견했어요.";
+      document.getElementById("resultFinder").textContent=finderInput.value.trim()?`발견자 ${finderInput.value.trim()}`:"발견자 익명";
+      const saved=saveCurrentCard();
+      document.getElementById("resultStory").textContent=saved
+        ?`‘${aName}’이라는 익숙한 이름 뒤에서 새로운 장면을 발견했어요! 앨범에도 한 장을 더했어요. 카드를 뒤집어 사진과 새 이름을 만나보세요.`
+        :`‘${aName}’이라는 익숙한 이름 뒤에서 새로운 장면을 발견했어요! 카드를 뒤집어 사진과 새 이름을 만나보세요.`;
+      const flipCard=document.getElementById("flipCard");
+      flipCard.classList.remove("flipped");
+      flipCard.setAttribute("aria-pressed","false");
+      document.getElementById("flipHint").textContent="카드를 눌러 뒤집어보세요 ↻";
+      showScreen("result");
+      if(saved)setTimeout(flyCardToAlbum,1500);
+    }
+    function showToast(m){toast.textContent=m;toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),2400)}
+    function resetGame(){clearInterval(state.timerId);state.photo=null;state.currentCardId=null;state.timerSeconds=180;state.timerRunning=false;photoInput.value="";photoPreview.removeAttribute("src");photoPreview.hidden=true;previewWrap.classList.add("empty");writeButton.disabled=true;aTitleInput.value="";bTitleInput.value="";noteInput.value="";finderInput.value="";makeCardButton.disabled=true;updateTimer();pickPrompt();showScreen("card")}
+    function wrapText(ctx,text,x,y,maxWidth,lineHeight,maxLines){const chars=[...text];const lines=[];let line="";for(const ch of chars){const test=line+ch;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=ch;if(lines.length===maxLines-1)break}else line=test}if(line&&lines.length<maxLines){const used=lines.join("").length+line.length;if(used<text.length)line=line.slice(0,-1)+"…";lines.push(line)}lines.forEach((v,i)=>ctx.fillText(v,x,y+i*lineHeight));return y+(lines.length-1)*lineHeight}
+    async function createDownloadCard(){
+      const image=new Image();
+      image.src=state.photo;
+      await image.decode();
+      const width=1080,photoHeight=900,bodyHeight=600;
+      const canvas=document.createElement("canvas");
+      canvas.width=width;
+      canvas.height=photoHeight+bodyHeight;
+      const ctx=canvas.getContext("2d");
+
+      ctx.fillStyle="#111511";
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      const imageRatio=image.width/image.height;
+      const targetRatio=width/photoHeight;
+      let sx=0,sy=0,sw=image.width,sh=image.height;
+      if(imageRatio>targetRatio){
+        sw=image.height*targetRatio;
+        sx=(image.width-sw)/2;
+      }else{
+        sh=image.width/targetRatio;
+        sy=(image.height-sh)/2;
+      }
+      ctx.drawImage(image,sx,sy,sw,sh,0,0,width,photoHeight);
+
+      ctx.fillStyle="#e2ff5c";
+      ctx.beginPath();
+      ctx.roundRect(48,45,300,64,32);
+      ctx.fill();
+      ctx.fillStyle="#161b00";
+      ctx.font="900 25px sans-serif";
+      ctx.fillText("SIDE B · 발견한 장면",76,86);
+
+      let y=photoHeight+70;
+      ctx.fillStyle="#b8c3b6";
+      ctx.font="900 22px sans-serif";
+      ctx.fillText("새롭게 지은 이름",56,y);
+
+      y+=76;
+      ctx.fillStyle="#e2ff5c";
+      ctx.font="900 70px sans-serif";
+      y=wrapText(ctx,bTitleInput.value.trim(),56,y,968,80,2);
+
+      y+=35;
+      ctx.fillStyle="#d1d8cf";
+      ctx.font="400 30px sans-serif";
+      y=wrapText(ctx,noteInput.value.trim()||"익숙한 장소를 다시 바라보다가 전에 없던 장면을 발견했어요.",56,y,960,45,3);
+
+      ctx.strokeStyle="rgba(255,255,255,.18)";
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.moveTo(56,canvas.height-126);
+      ctx.lineTo(canvas.width-56,canvas.height-126);
+      ctx.stroke();
+
+      ctx.fillStyle="#aeb8ac";
+      ctx.font="750 22px sans-serif";
+      ctx.fillText(`원래 장소 이름 · ${aTitleInput.value.trim()}`,56,canvas.height-78);
+      ctx.font="700 20px sans-serif";
+      ctx.fillText("B-SCENE / 동네의 다른 장면",56,canvas.height-42);
+
+      ctx.textAlign="right";
+      ctx.fillText(finderInput.value.trim()?`발견자 ${finderInput.value.trim()}`:"발견자 익명",canvas.width-56,canvas.height-42);
+      ctx.textAlign="left";
+
+      canvas.toBlob(blob=>{
+        if(!blob)return;
+        const url=URL.createObjectURL(blob);
+        const link=document.createElement("a");
+        link.href=url;
+        link.download="b-scene-card.png";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),1000);
+        showToast("SIDE B 발견 카드를 저장했어요.");
+      },"image/png");
+    }
+    document.getElementById("openBookButton").addEventListener("click",()=>{startBackgroundMusic();showScreen("intro")});
+    musicToggleButton.addEventListener("click",toggleBackgroundMusic);
+    document.addEventListener("visibilitychange",()=>{
+      if(document.hidden&&state.audioContext&&state.audioContext.state==="running"){
+        state.audioContext.suspend().catch(()=>{});
+      }else if(!document.hidden&&state.musicEnabled&&currentScreen!=="cover"){
+        startBackgroundMusic();
+      }
+    });
+    document.getElementById("coverAlbumButton").addEventListener("click",openAlbum);
+    document.getElementById("headerAlbumButton").addEventListener("click",openAlbum);
+    document.getElementById("albumButton").addEventListener("click",openAlbum);
+    document.getElementById("albumRestartButton").addEventListener("click",resetGame);
+    document.getElementById("albumCoverButton").addEventListener("click",()=>showScreen("cover"));
+    document.getElementById("startButton").addEventListener("click",()=>{pickPrompt("arrive");showScreen("card")});document.getElementById("rerollButton").addEventListener("click",()=>pickPrompt("shuffle"));document.getElementById("walkButton").addEventListener("click",()=>{state.timerSeconds=180;updateTimer();showScreen("walk");startTimer()});document.getElementById("captureNowButton").addEventListener("click",revealDiscovery);pauseButton.addEventListener("click",toggleTimer);photoInput.addEventListener("change",()=>readImage(photoInput.files[0]));writeButton.addEventListener("click",()=>{if(state.photo)showScreen("write")});[aTitleInput,bTitleInput].forEach(i=>i.addEventListener("input",validateTitles));makeCardButton.addEventListener("click",buildResult);const flipCard=document.getElementById("flipCard");function toggleFlip(){const isFlipped=flipCard.classList.toggle("flipped");if(isFlipped)playRevealChime();flipCard.setAttribute("aria-pressed",String(isFlipped));flipCard.setAttribute("aria-label",isFlipped?"카드를 뒤집어 원래 장소 이름 보기":"카드를 뒤집어 촬영한 SIDE B 장면 보기");document.getElementById("flipHint").textContent=isFlipped?"한 번 더 누르면 A면으로 돌아가요 ↺":"카드를 눌러 뒤집어보세요 ↻"}flipCard.addEventListener("click",toggleFlip);flipCard.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggleFlip()}});document.getElementById("downloadButton").addEventListener("click",createDownloadCard);document.getElementById("restartButton").addEventListener("click",resetGame);updateTimer();updateMusicButton();
+  </script>
+</body>
+</html>
